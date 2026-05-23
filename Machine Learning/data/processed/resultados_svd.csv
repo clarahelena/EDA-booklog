@@ -1,0 +1,4 @@
+algoritmo,n_components,variancia_explicada,precision@10,coverage
+SVD+Cosseno,50,0.6058,0.9903,0.0036
+SVD+Cosseno,20,0.422,0.9897,0.0036
+SVD+Cosseno,100,0.7381,0.9893,0.0036
