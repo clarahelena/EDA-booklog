@@ -1,0 +1,15 @@
+{
+  "algoritmo": "KNearestNeighbors",
+  "metrica": "cosine",
+  "k": 20,
+  "n_neighbors_modelo": 21,
+  "seed": 42,
+  "n_livros_treino": 84054,
+  "n_features": 1182,
+  "precision_at_10": 1.0,
+  "coverage": 0.0071,
+  "criterio_selecao": "Maior Coverage entre configurações com Precision@10 máxima (1.0000)",
+  "arquivo_modelo": "models/best_model.pkl",
+  "arquivo_encoder": "models/mlb.pkl",
+  "arquivo_scaler": "models/scaler.pkl"
+}
