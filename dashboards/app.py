@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 from dash import Dash, html, dcc, Input, Output
-from components import scatter_relacao, barras_generos, visao_geral
+from components import scatter_relacao, barras_generos, rosca_formatos, visao_geral
 
 # função para converter a string do parquet em uma lista
 def extrair_generos(x):
@@ -24,17 +24,18 @@ except FileNotFoundError:
     df = pd.read_parquet(os.path.join(BASE_DIR, 'datasets', 'books.parquet'))
 
 df['generos_lista'] = df['genre'].apply(extrair_generos) 
-
+external_stylesheets = ['https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap']
 # iniciamento do dashboard
-app = Dash(__name__, suppress_callback_exceptions=True)
+app = Dash(__name__, suppress_callback_exceptions=True, external_stylesheets=external_stylesheets)
 
 layout_analise = scatter_relacao.render(app, df)
 layout_barras  = barras_generos.render(app, df)
 layout_visao   = visao_geral.render(app, df)
+layout_rosca = rosca_formatos.render(app, df)
 
 # layout Global
 app.layout = html.Div(
-    style={'backgroundColor': '#0f172a', 'color': '#f8fafc', 'padding': '40px', 'minHeight': '100vh', 'fontFamily': 'system-ui, sans-serif'},
+    style={'backgroundColor': '#0f172a', 'color': '#f8fafc', 'padding': '40px', 'minHeight': '100vh', 'fontFamily': 'Poppins, sans-serif'},
     children=[
         dcc.Location(id='url', refresh=False),
 
@@ -61,7 +62,14 @@ def render_page(pathname):
         return html.Div([
             html.H1("Análise de Livros", style={'textAlign': 'center', 'marginBottom': '40px', 'color': '#A3E635'}),
             layout_analise,
-            layout_barras,
+
+            html.Div(
+                    style={'display': 'flex', 'gap': '20px', 'width': '100%', 'height': '450px', 'alignItems': 'stretch'},
+                    children=[
+                        html.Div(layout_barras, style={'width': '75%', 'height': '100%'}),
+                        html.Div(layout_rosca, style={'width': '25%', 'height': '100%'})
+                    ]
+            )
         ])
     return layout_visao
 

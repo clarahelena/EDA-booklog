@@ -70,14 +70,15 @@ def render(app, df):
         fig_bar = px.bar(
             df_barras, x='Frequência', y='Gênero', orientation='h',
             title=titulo_barras, template='plotly_dark',
-            color='Frequência', color_continuous_scale='Viridis',
+            color='Frequência', color_continuous_scale=["#8a094a", "#ba0c63", "#c9442b", "#338a57", "#4ca6a6"],
             range_color=[0, max_freq]
         )
         
         fig_bar.update_layout(
             yaxis={'categoryorder':'total ascending'},
             paper_bgcolor='rgba(0,0,0,0)', 
-            plot_bgcolor='rgba(0,0,0,0)'
+            plot_bgcolor='rgba(0,0,0,0)',
+            font_family="Poppins"
         )
         
         return fig_bar

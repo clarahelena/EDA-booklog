@@ -6,7 +6,11 @@ from collections import Counter
 def render(app, df):
     coluna_autor = 'author'
     lista_autores = sorted(df[coluna_autor].dropna().unique())
-    metrics = ['pages', 'totalratings', 'rating']
+    metrics_mapping = {
+        'pages': 'Páginas',
+        'totalratings': 'Quantidade de avaliações',
+        'rating': 'Nota'
+    }
 
     todos_generos = list(itertools.chain.from_iterable(df['generos_lista']))
     top_generos = [g for g, c in Counter(todos_generos).most_common(100)]
@@ -18,11 +22,11 @@ def render(app, df):
             children=[
                 html.Div([
                     html.Label("Métrica Eixo X:", style={'display': 'block', 'marginBottom': '5px'}),
-                    dcc.Dropdown(id='x-axis-select', options=[{'label': m.replace('_', ' ').title(), 'value': m} for m in metrics], value='pages', clearable=False, style={'width': '160px', 'color': '#000'})
+                    dcc.Dropdown(id='x-axis-select', options=[{'label': nome, 'value': valor} for valor, nome in metrics_mapping.items()], value='pages', clearable=False, style={'width': '160px', 'color': '#000'})
                 ]),
                 html.Div([
                     html.Label("Métrica Eixo Y:", style={'display': 'block', 'marginBottom': '5px'}),
-                    dcc.Dropdown(id='y-axis-select', options=[{'label': m.replace('_', ' ').title(), 'value': m} for m in metrics], value='totalratings', clearable=False, style={'width': '160px', 'color': '#000'})
+                    dcc.Dropdown(id='y-axis-select', options=[{'label': nome, 'value': valor} for valor, nome in metrics_mapping.items()], value='totalratings', clearable=False, style={'width': '160px', 'color': '#000'})
                 ]),
                 html.Div([
                     html.Label("Buscar Autor:", style={'display': 'block', 'marginBottom': '5px'}),
@@ -63,8 +67,8 @@ def render(app, df):
                         'overflowY': 'auto', 'maxHeight': '650px'
                     },
                     children=[
-                        # mensagem padrão inicial antes do usuário clicar em algo
-                        html.P("Clique em uma bolinha no gráfico para ver os detalhes do livro.", 
+                        # mensagem inicial antes do usuario clicar em algo
+                        html.P("Clique em um ponto no gráfico para ver os detalhes do livro.", 
                                style={'textAlign': 'center', 'color': '#64748b', 'marginTop': '60px', 'fontSize': '14px'})
                     ]
                 )
@@ -111,7 +115,10 @@ def render(app, df):
             (df['pages'] >= min_p) & (df['pages'] <= max_p)
         ]
 
-        titulo_grafico = f"Relação Dinâmica: {x_col.title()} vs {y_col.title()}"
+        nome_x = metrics_mapping.get(x_col, x_col)
+        nome_y = metrics_mapping.get(y_col, y_col)
+        
+        titulo_grafico = f"Relação Dinâmica: {nome_x} vs {nome_y}"
         if selected_author:
             filtered_df = filtered_df[filtered_df[coluna_autor] == selected_author]
             titulo_grafico += f" | Autor: {selected_author}"
@@ -125,9 +132,14 @@ def render(app, df):
             filtered_df, x=x_col, y=y_col, color='rating',
             size='totalratings' if y_col != 'totalratings' else None, hover_name='title',
             log_y=True if y_col == 'totalratings' else False, template='plotly_dark',
-            color_continuous_scale='Viridis', range_color=[0, 5], title=titulo_grafico
+            color_continuous_scale=["#8a094a", "#ba0c63", "#c9442b", "#338a57", "#4ca6a6"], range_color=[0, 5], title=titulo_grafico,
+            labels={
+                x_col: nome_x,
+                y_col: nome_y,
+                'rating': 'Nota' 
+            }
         )
-        fig.update_layout(transition_duration=300, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+        fig.update_layout(transition_duration=300, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_family="Poppins")
         return fig
 
 
