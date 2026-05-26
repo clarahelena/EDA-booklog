@@ -15,10 +15,13 @@ def extrair_generos(x):
     return []
 
 # carregamento dos dados do dataset
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATASET_PATH = os.path.join(BASE_DIR, '..', 'datasets', 'books.parquet')
+
 try:
-    df = pd.read_parquet('../datasets/books.parquet')
+    df = pd.read_parquet(DATASET_PATH)
 except FileNotFoundError:
-    df = pd.read_parquet('datasets/books.parquet')
+    df = pd.read_parquet(os.path.join(BASE_DIR, 'datasets', 'books.parquet'))
 
 df['generos_lista'] = df['genre'].apply(extrair_generos) 
 
