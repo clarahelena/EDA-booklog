@@ -1,7 +1,7 @@
-algoritmo,k,metrica,precision@10,coverage
-KNN,5,cosine,1.0,0.0018
-KNN,10,cosine,1.0,0.0036
-KNN,20,cosine,1.0,0.0071
-KNN,5,euclidean,0.9993,0.0018
-KNN,10,euclidean,0.998,0.0036
-KNN,20,euclidean,0.9958,0.0071
+algoritmo,k,metrica,precision@10,recall@10,f1@10,coverage,suporte
+KNN,5,cosine,1.0,1.0,1.0,0.0018,50
+KNN,5,euclidean,1.0,1.0,1.0,0.0018,50
+KNN,10,cosine,1.0,1.0,1.0,0.0036,50
+KNN,10,euclidean,1.0,1.0,1.0,0.0036,50
+KNN,20,cosine,1.0,1.0,1.0,0.0071,50
+KNN,20,euclidean,0.997,0.997,0.997,0.0071,50
