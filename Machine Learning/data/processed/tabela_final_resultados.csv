@@ -1,0 +1,11 @@
+algoritmo,configuracao,precision@10,coverage
+KNN,k=20 | cosine,1.0,0.0071
+Baseline (Cosseno Puro),top_10,1.0,0.0036
+KNN,k=10 | cosine,1.0,0.0036
+KNN,k=5 | cosine,1.0,0.0018
+KNN,k=5 | euclidean,0.9993,0.0018
+KNN,k=10 | euclidean,0.998,0.0036
+KNN,k=20 | euclidean,0.9958,0.0071
+SVD+Cosseno,n_comp=50 | var=0.6058,0.9903,0.0036
+SVD+Cosseno,n_comp=20 | var=0.422,0.9897,0.0036
+SVD+Cosseno,n_comp=100 | var=0.7381,0.9893,0.0036
