@@ -44,9 +44,9 @@ app.layout = html.Div(
                    'borderBottom': '2px solid #a3e635'},
             children=[
                 html.Span("Booklog", style={'color': '#a3e635', 'fontWeight': 'bold', 'fontSize': '20px'}),
-                dcc.Link("Análise de Livros", href="/analise",
-                    style={'color': '#94a3b8', 'textDecoration': 'none', 'fontSize': '15px'}),
                 dcc.Link("Visão Geral", href="/",
+                    style={'color': '#94a3b8', 'textDecoration': 'none', 'fontSize': '15px'}),
+                dcc.Link("Análise de Livros", href="/analise",
                     style={'color': '#94a3b8', 'textDecoration': 'none', 'fontSize': '15px'}),
             ]
         ),
