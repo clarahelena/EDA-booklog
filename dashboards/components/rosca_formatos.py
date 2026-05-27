@@ -9,6 +9,18 @@ COLORS_BASE  = ["#4ca6a6", "#338a57", "#c9442b", "#ba0c63", "#8a094a"]
 def render(app, df):
 
     layout = html.Div([
+        html.H4(
+            id='format-donut-title',
+            style={
+                'color': '#ffffff',
+                'fontFamily': 'Poppins',
+                'textAlign': 'center',
+                'margin': '0 0 10px 0',
+                'fontSize': 'clamp(14px, 1.2vw, 18px)', 
+                'whiteSpace': 'normal',
+                'fontWeight': '600'
+            }
+        ),
         dcc.Graph(
             id='format-donut-chart',
             config={'displayModeBar': False},
@@ -25,7 +37,8 @@ def render(app, df):
     })
 
     @app.callback(
-        Output('format-donut-chart', 'figure'),
+        [Output('format-donut-title', 'children'),
+         Output('format-donut-chart', 'figure')],
         [Input('author-select', 'value'),
          Input('genre-select', 'value'),
          Input('min-ratings-input', 'value'),
@@ -46,20 +59,23 @@ def render(app, df):
         if selected_author:
             filtered_df = filtered_df[filtered_df['author'] == selected_author]
 
+        # Define qual será o título
         titulo = f"Formatos — {focus_genre}" if focus_genre else "Formatos de publicação"
+        
         if focus_genre:
             mask = filtered_df['generos_lista'].apply(lambda x: focus_genre in x)
             filtered_df = filtered_df[mask]
 
         if filtered_df.empty or 'bookformat' not in filtered_df.columns:
-            return _empty_fig("Sem dados para os filtros selecionados")
+            # Retorna o título e o gráfico vazio
+            return titulo, _empty_fig("Sem dados para os filtros selecionados")
 
         df_fmt = filtered_df.dropna(subset=['bookformat'])
         contagem = df_fmt['bookformat'].value_counts().reset_index()
         contagem.columns = ['Formato', 'Quantidade']
 
         if contagem.empty:
-            return _empty_fig("Sem formatos disponíveis")
+            return titulo, _empty_fig("Sem formatos disponíveis")
 
         if len(contagem) > 5:
             top5 = contagem.head(5)
@@ -76,7 +92,6 @@ def render(app, df):
 
         colors_base  = COLORS_BASE[:n]
 
-        # Texto do hover personalizado
         custom_hover = [
             f"<b>{fmt}</b><br>{qty:,} livros<br>{qty/total*100:.1f}%"
             for fmt, qty in zip(labels, values)
@@ -123,35 +138,29 @@ def render(app, df):
         )
 
         fig.update_layout(
-            title=dict(
-                text=titulo,
-                font=dict(size=20, color="#ffffff"),
-                x=0.5,
-                xanchor='center',
-                font_family="Poppins"
-            ),
             showlegend=True,
             legend=dict(
-                font=dict(size=12, color="#ffffff"),
+                font=dict(size=11, color="#ffffff", family="Poppins"),
                 bgcolor='rgba(0,0,0,0)',
-                bordercolor='rgba(0,0,0,0)',
-                orientation='v',
-                x=1.02,
-                y=0.5,
-                yanchor='middle',
-                itemsizing='constant',
+                orientation='h',
+                yanchor='top',
+                y=-0.1,
+                xanchor='center',
+                x=0.5
             ),
             paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)',
-            margin=dict(t=40, b=10, l=10, r=130),
+            margin=dict(t=10, b=50, l=10, r=10, autoexpand=True),
+            autosize=True,
             transition=dict(duration=500, easing='cubic-in-out'),
+            font_family="Poppins"
         )
 
         fig.update_traces(
             pull=[0.06 if i == 0 else 0 for i in range(n)]
         )
 
-        return fig
+        return titulo, fig
 
     return layout
 
@@ -169,6 +178,6 @@ def _empty_fig(mensagem: str):
         plot_bgcolor='rgba(0,0,0,0)',
         xaxis=dict(visible=False),
         yaxis=dict(visible=False),
-        margin=dict(t=20, b=20, l=20, r=20)
+        margin=dict(t=10, b=20, l=20, r=20)
     )
     return fig
