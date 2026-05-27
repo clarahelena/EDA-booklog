@@ -43,10 +43,10 @@ def render(app, df):
         html.Div(
             style={'display': 'flex', 'gap': '20px', 'justifyContent': 'center', 'flexWrap': 'wrap', 'marginBottom': '40px'},
             children=[
-                html.Div([html.Label("Mín. Avaliações:", style={'display': 'block', 'marginBottom': '5px'}), dcc.Input(id='min-ratings-input', type='number', value=100, min=0, style={'width': '160px', 'padding': '8px', 'borderRadius': '4px', 'color': '#000000'})]),
-                html.Div([html.Label("Máx. Avaliações:", style={'display': 'block', 'marginBottom': '5px'}), dcc.Input(id='max-ratings-input', type='number', value=500000, min=0, style={'width': '160px', 'padding': '8px', 'borderRadius': '4px', 'color': '#000000'})]),
-                html.Div([html.Label("Mín. Páginas:", style={'display': 'block', 'marginBottom': '5px'}), dcc.Input(id='min-pages-input', type='number', value=0, min=0, style={'width': '160px', 'padding': '8px', 'borderRadius': '4px', 'color': '#000000', 'marginLeft': '20px'})]),
-                html.Div([html.Label("Máx. Páginas:", style={'display': 'block', 'marginBottom': '5px'}), dcc.Input(id='max-pages-input', type='number', value=2000, min=0, style={'width': '160px', 'padding': '8px', 'borderRadius': '4px', 'color': '#000000'})])
+                html.Div([html.Label("Mín. Avaliações:", style={'display': 'block', 'marginBottom': '5px'}), dcc.Input(id='min-ratings-input', type='number', value=100, min=0, style={'width': '160px', 'padding': '8px', 'height': '44px', 'borderRadius': '4px', 'color': '#000000'})]),
+                html.Div([html.Label("Máx. Avaliações:", style={'display': 'block', 'marginBottom': '5px'}), dcc.Input(id='max-ratings-input', type='number', value=500000, min=0, style={'width': '160px', 'padding': '8px', 'height': '44px', 'borderRadius': '4px', 'color': '#000000'})]),
+                html.Div([html.Label("Mín. Páginas:", style={'display': 'block', 'marginBottom': '5px'}), dcc.Input(id='min-pages-input', type='number', value=0, min=0, style={'width': '160px', 'padding': '8px', 'height': '44px', 'borderRadius': '4px', 'color': '#000000', 'marginLeft': '20px'})]),
+                html.Div([html.Label("Máx. Páginas:", style={'display': 'block', 'marginBottom': '5px'}), dcc.Input(id='max-pages-input', type='number', value=2000, min=0, style={'width': '160px', 'padding': '8px', 'height': '44px', 'borderRadius': '4px', 'color': '#000000'})])
             ]
         ),
 

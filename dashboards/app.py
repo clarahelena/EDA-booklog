@@ -36,6 +36,7 @@ layout_rosca = rosca_formatos.render(app, df)
 # layout Global
 app.layout = html.Div(
     style={'backgroundColor': '#0f172a', 'color': '#f8fafc', 'padding': '40px', 'minHeight': '100vh', 'fontFamily': 'Poppins, sans-serif'},
+
     children=[
         dcc.Location(id='url', refresh=False),
 
@@ -52,7 +53,7 @@ app.layout = html.Div(
             ]
         ),
 
-        html.Div(id='page-content', style={'padding': '40px'})
+        html.Div(id='page-content', style={'padding': '20px 40px'})
     ]
 )
  
