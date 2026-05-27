@@ -105,14 +105,25 @@ def render(app, df: pd.DataFrame):
             html.Div(
                 style={'display': 'flex', 'gap': '20px', 'marginBottom': '24px', 'flexWrap': 'wrap'},
                 children=[
-                    html.Div(style={**CARD_STYLE, 'flex': '2', 'minWidth': '320px'},
+                    html.Div(style={**CARD_STYLE, 'flex': '1', 'minWidth': '320px'},
                              children=[dcc.Graph(id='vg-hist')]),
-                    html.Div(style={**CARD_STYLE, 'flex': '1', 'minWidth': '680px'},
-                             children=[dcc.Graph(id='vg-rosca')]),
+                ]
+            ),
+            
+            # linha 2: scatter comunidade
+            html.Div(
+                style={'display': 'flex', 'gap': '20px', 'marginBottom': '24px', 'flexWrap': 'wrap'},
+                children=[
+                    html.Div(style={**CARD_STYLE, 'flex': '2', 'minWidth': '320px'},
+                             children=[
+                                 html.P("💡 Clique em um livro para ver detalhes",
+                                        style={'color': MUTED, 'fontSize': '12px', 'marginBottom': '4px'}),
+                                 dcc.Graph(id='vg-rosca'),
+                             ]),
                 ]
             ),
 
-            # linha 2: scatter autores + bar top livros
+            # linha 3: scatter autores
             html.Div(
                 style={'display': 'flex', 'gap': '20px', 'flexWrap': 'wrap'},
                 children=[
@@ -124,6 +135,8 @@ def render(app, df: pd.DataFrame):
                                  ]),
                 ]
             ),
+            
+            # linha 4: livros barra
             html.Div(
                 style={'display': 'flex', 'gap': '20px', 'flexWrap': 'wrap'},
                 children=[

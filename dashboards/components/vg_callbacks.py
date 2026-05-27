@@ -1,3 +1,6 @@
+import itertools
+from collections import Counter
+import pandas as pd
 import plotly.express as px
 from dash import Input, Output, html
 
@@ -123,17 +126,19 @@ def registrar(app, df, df_valido, top_generos, lista_autores,
         fig_hist.add_vline(x=media, line_dash='dash', line_color='#facc15',
             annotation_text=f' Média: {media:.2f}', annotation_font_color='#facc15')
 
-        # rosca formatos
-        fmt = fdf['bookformat'].value_counts().reset_index()
-        fmt.columns = ['Formato', 'Qtd']
-        fmt.loc[fmt['Qtd'] < fmt['Qtd'].sum() * 0.02, 'Formato'] = 'Outros'
-        fmt = fmt.groupby('Formato', as_index=False)['Qtd'].sum()
-        fig_rosca = px.pie(fmt, names='Formato', values='Qtd',
-            title='Formatos de Leitura', template=TEMPLATE,
-            color_discrete_sequence=px.colors.sequential.Viridis, hole=0.4)
-        fig_rosca.update_traces(textposition='inside', textinfo='percent+label')
-        fig_rosca.update_layout(paper_bgcolor=TRANSP, showlegend=True, height=450)
-
+        # scatter reviews × avaliações (debate da comunidade)
+        rev_x_ava_stats = px.scatter(
+            fdf[fdf['totalratings'] > 0].nlargest(500, 'totalratings'),
+            x='totalratings', y='reviews',
+            color='rating', color_continuous_scale='Turbo', range_color=[0, 5],
+            hover_name='title', size='rating', size_max=20,
+            title='Debate da Comunidade: Avaliações × Reviews',
+            template=TEMPLATE,
+            labels={'totalratings': 'Total de avaliações', 'reviews': 'Reviews escritas', 'rating': 'Nota'}
+        )       
+        rev_x_ava_stats.update_layout(
+            paper_bgcolor=TRANSP, plot_bgcolor=TRANSP, height=450
+        )
         # scatter autores
         autor_stats = (fdf.groupby('author')
             .agg(qtd_livros=('title','count'), media_nota=('rating','mean'),
@@ -161,14 +166,19 @@ def registrar(app, df, df_valido, top_generos, lista_autores,
             plot_bgcolor=TRANSP
         )
 
-        return kpis, fig_hist, fig_rosca, fig_autores, fig_top
+        return kpis, fig_hist, rev_x_ava_stats, fig_autores, fig_top
     # card de detalhes ao clicar no top livros
     @app.callback(
         Output('vg-book-card', 'children'),
+        Input('vg-rosca', 'clickData'),
         Input('vg-top-livros', 'clickData'),
         prevent_initial_call=True
     )
-    def book_card(clickData):
+    def book_card(clickData_rosca, clickData_top):
+        from dash import ctx
+        trigger = ctx.triggered_id
+        clickData = clickData_rosca if trigger == 'vg-rosca' else clickData_top
+        
         if clickData is None:
             return [html.P("Clique em um livro no gráfico para ver os detalhes.",
                            style={'textAlign': 'center', 'color': '#64748b',
@@ -176,18 +186,18 @@ def registrar(app, df, df_valido, top_generos, lista_autores,
         try:
             titulo_clicado = clickData['points'][0]['hovertext']
             livro = df[df['title'] == titulo_clicado].iloc[0]
- 
-            img_url  = livro.get('img', livro.get('image_url', ''))
-            titulo   = livro.get('title', 'Título Indisponível')
-            autor    = livro.get('author', '')
+    
+            img_url   = livro.get('img', livro.get('image_url', ''))
+            titulo    = livro.get('title', 'Título Indisponível')
+            autor     = livro.get('author', '')
             descricao = livro.get('desc', livro.get('description', 'Sem descrição disponível.'))
- 
+    
             generos = livro.get('genres', livro.get('genre', ''))
             if isinstance(generos, list):
                 generos_texto = ", ".join(generos)
             else:
                 generos_texto = str(generos).replace('[','').replace(']','').replace("'","")
- 
+    
             return [
                 html.H3(titulo, style={'color': ACCENT, 'fontSize': '16px', 'fontWeight': 'bold',
                                        'textAlign': 'center', 'marginBottom': '8px'}),
@@ -207,4 +217,4 @@ def registrar(app, df, df_valido, top_generos, lista_autores,
                                          'textAlign': 'justify', 'lineHeight': '1.5'}),
             ]
         except Exception as e:
-            return [html.P(f"Erro: {str(e)}", style={'color': '#ef4444', 'fontSize': '12px'})]    
+            return [html.P(f"Erro: {str(e)}", style={'color': '#ef4444', 'fontSize': '12px'})]
