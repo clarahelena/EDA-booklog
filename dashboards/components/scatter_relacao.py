@@ -33,7 +33,7 @@ def render(app, df):
                     dcc.Dropdown(id='author-select', placeholder="Selecione um autor...", searchable=True, clearable=True, style={'width': '220px', 'color': '#000'})
                 ]),
                 html.Div([
-                    html.Label("Foco por Gênero:", style={'display': 'block', 'marginBottom': '5px', 'color': '#a3e635', 'fontWeight': 'bold'}),
+                    html.Label("Foco por Gênero:", style={'display': 'block', 'marginBottom': '5px', 'color': '#500903', 'fontWeight': 'bold'}),
                     dcc.Dropdown(id='genre-select', options=[{'label': g, 'value': g} for g in top_generos], placeholder="Ex: Fantasy", searchable=True, clearable=True, style={'width': '220px', 'color': '#000'})
                 ])
             ]
@@ -55,15 +55,15 @@ def render(app, df):
             style={'display': 'flex', 'gap': '20px', 'width': '100%', 'marginBottom': '20px'},
             children=[
                 html.Div(
-                    style={'backgroundColor': '#1e293b', 'padding': '20px', 'borderRadius': '12px', 'width': '80%'},
+                    style={'backgroundColor': '#ffffff', 'padding': '20px', 'borderRadius': '12px', 'width': '80%'},
                     children=[dcc.Graph(id='main-interactive-graph')]
                 ),
                 
                 html.Div(
                     id='book-details-card',
                     style={
-                        'backgroundColor': '#1e293b', 'padding': '25px', 'borderRadius': '12px', 
-                        'width': '20%', 'color': '#f8fafc', 'display': 'block',
+                        'backgroundColor': '#ffffff', 'padding': '25px', 'borderRadius': '12px', 
+                        'width': '20%', 'color': '#e0e0e0', 'display': 'block',
                         'overflowY': 'auto', 'maxHeight': '650px'
                     },
                     children=[
@@ -139,7 +139,7 @@ def render(app, df):
                 'rating': 'Nota' 
             }
         )
-        fig.update_layout(transition_duration=300, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_family="Poppins")
+        fig.update_layout(transition_duration=300, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_family="Poppins", font=dict(color='#500903'), xaxis=dict(color='#500903', gridcolor='#e0e0e0'), yaxis=dict(color='#500903', gridcolor='#e0e0e0'))
         return fig
 
 
@@ -176,28 +176,28 @@ def render(app, df):
             # estrutura html do card
             card_html = [
                 # titulo
-                html.H3(titulo, style={'color': '#a3e635', 'fontSize': '16px', 'fontWeight': 'bold', 'textAlign': 'center', 'marginBottom': '20px'}),
+                html.H3(titulo, style={'color': '#500903', 'fontSize': '16px', 'fontWeight': 'bold', 'textAlign': 'center', 'marginBottom': '20px'}),
                 
                 # imagem
                 html.Div(
                     style={'textAlign': 'center', 'marginBottom': '20px'},
                     children=[
                         html.Img(src=img_url, style={'maxWidth': '100%', 'maxHeight': '180px', 'borderRadius': '8px', 'boxShadow': '0 4px 10px rgba(0,0,0,0.5)'})
-                    ] if img_url else [html.P("📷 Sem Imagem", style={'fontStyle': 'italic', 'color': '#475569'})]
+                    ] if img_url else [html.P("Sem Imagem", style={'fontStyle': 'italic', 'color': '#475569'})]
                 ),
                 
                 # generos
                 html.Div(style={'marginBottom': '15px'}, children=[
-                    html.Span("Gêneros: ", style={'color': '#a3e635', 'fontWeight': 'bold', 'fontSize': '13px'}),
-                    html.Span(generos_texto, style={'color': '#cbd5e1', 'fontSize': '13px'})
+                    html.Span("Gêneros: ", style={'color': '#500903', 'fontWeight': 'bold', 'fontSize': '13px'}),
+                    html.Span(generos_texto, style={'color': '#500903', 'fontSize': '13px'})
                 ]),
                 
-                html.Hr(style={'borderColor': '#334155', 'margin': '15px 0'}),
+                html.Hr(style={'borderColor': '#e0e0e0', 'margin': '15px 0'}),
                 
                 # descriçao
                 html.Div(children=[
-                    html.P("Sinopse:", style={'color': '#a3e635', 'fontWeight': 'bold', 'fontSize': '13px', 'marginBottom': '5px'}),
-                    html.P(descricao, style={'color': '#94a3b8', 'fontSize': '12px', 'textAlign': 'justify', 'lineHeight': '1.5'})
+                    html.P("Sinopse:", style={'color': '#500903', 'fontWeight': 'bold', 'fontSize': '13px', 'marginBottom': '5px'}),
+                    html.P(descricao, style={'color': '#500903', 'fontSize': '12px', 'textAlign': 'justify', 'lineHeight': '1.5'})
                 ])
             ]
             return card_html

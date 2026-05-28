@@ -27,7 +27,7 @@ def render(app, df):
             style={'height': '100%'}
         )
     ], style={
-        'backgroundColor': '#1e1b2e',
+        'backgroundColor': '#ffffff',
         'padding': '16px',
         'borderRadius': '12px',
         'height': '100%',
@@ -124,11 +124,11 @@ def render(app, df):
         # anotacao central da rosquinha
         fig.add_annotation(
             text=(
-                f"<span style='font-size:11px;color:#c084fc'>TOTAL</span>"
+                f"<span style='font-size:11px;color:#500903'>TOTAL</span>"
                 f"<span style='font-size:6px'><br><br></span>"
-                f"<b style='font-size:22px;color:#fdf4ff'>{total:,}</b>"
+                f"<b style='font-size:22px;color:#500903'>{total:,}</b>"
                 f"<span style='font-size:6px'><br><br></span>"
-                f"<span style='font-size:11px;color:#a1a1aa'>LIVROS</span>"
+                f"<span style='font-size:11px;color:#500903'>LIVROS</span>"
             ),
             x=0.5, y=0.5,
             showarrow=False,
@@ -140,7 +140,7 @@ def render(app, df):
         fig.update_layout(
             showlegend=True,
             legend=dict(
-                font=dict(size=11, color="#ffffff", family="Poppins"),
+                font=dict(size=11, color="#500903", family="Poppins"),
                 bgcolor='rgba(0,0,0,0)',
                 orientation='h',
                 yanchor='top',

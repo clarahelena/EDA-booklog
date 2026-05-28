@@ -8,7 +8,7 @@ def render(app, df):
     # lauyout exclusivo desse componente
     layout = html.Div([
         dcc.Graph(id='genre-bar-chart')
-    ], style={'backgroundColor': '#1e293b', 'padding': '20px', 'borderRadius': '12px'})
+    ], style={'backgroundColor': '#500903', 'padding': '20px', 'borderRadius': '12px'})
 
     @app.callback(
         Output('genre-bar-chart', 'figure'),
@@ -39,7 +39,7 @@ def render(app, df):
         # se os filtros zerar os livros
         if filtered_df.empty:
             vazio = px.bar(title="Nenhum livro atende a esses filtros", template='plotly_dark')
-            vazio.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+            vazio.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='#500903'))
             return vazio
 
         # aplica a regra do Gênero
@@ -61,7 +61,7 @@ def render(app, df):
 
         if df_barras.empty:
             vazio = px.bar(title="Sem dados suficientes", template='plotly_dark')
-            vazio.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+            vazio.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='#500903'))
             return vazio
 
 
@@ -76,9 +76,12 @@ def render(app, df):
         
         fig_bar.update_layout(
             yaxis={'categoryorder':'total ascending'},
-            paper_bgcolor='rgba(0,0,0,0)', 
-            plot_bgcolor='rgba(0,0,0,0)',
-            font_family="Poppins"
+            paper_bgcolor='#ffffff', 
+            plot_bgcolor='#ffffff',
+            font=dict(color='#500903', family='Poppins'),
+            xaxis=dict(color='#500903', gridcolor='#e0e0e0'),
+            coloraxis_colorbar=dict(tickfont=dict(color='#500903'), titlefont=dict(color='#500903'))
+
         )
         
         return fig_bar

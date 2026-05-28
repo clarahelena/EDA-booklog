@@ -5,18 +5,18 @@ import plotly.express as px
 from dash import dcc, html
 from components import vg_callbacks
 
-BG_CARD  = '#1e293b'
-ACCENT   = '#a3e635'
+BG_CARD  = '#ffffff'
+ACCENT   = '#D4AA94'
 TEXT     = '#f8fafc'
-MUTED    = '#94a3b8'
-TEMPLATE = 'plotly_dark'
+MUTED    = '#e8c9b8'
+TEMPLATE = 'plotly_white'
 TRANSP   = 'rgba(0,0,0,0)'
 
 CARD_STYLE = {
     'backgroundColor': BG_CARD,
     'padding': '24px',
     'borderRadius': '12px',
-    'border': '1px solid #334155',
+    'border': '1px solid #7a1005',
 }
 
 # render – função chamada pelo app.py
@@ -31,23 +31,23 @@ def render(app, df: pd.DataFrame):
     min_nota    = 0.0
  
     # registra os callbacks
-    vg_callbacks.registrar(app, df, df_valido, top_generos, lista_autores, min_paginas, max_paginas, min_nota)
+    vg_callbacks.registrar(app, df, df_valido, lista_autores, min_paginas, max_paginas, min_nota)
 
     # layout da página
     layout = html.Div(
         style={'color': TEXT},
         children=[
             # cabeçalho
-            html.H1("🌐 Visão Geral da Plataforma",
+            html.H1("Visão Geral da Plataforma",
                     style={'textAlign': 'center', 'marginBottom': '8px', 'color': ACCENT}),
             html.P("Explore o catálogo usando os filtros abaixo.",
-                   style={'textAlign': 'center', 'color': MUTED, 'marginBottom': '28px', 'fontSize': '15px'}),
+                   style={'textAlign': 'center', 'color': '#D4AA94', 'marginBottom': '28px', 'fontSize': '15px'}),
             
             # painel de filtros
             html.Div(
                 style={**CARD_STYLE, 'marginBottom': '28px', 'overflowX': 'auto'},
                 children=[
-                    html.H3("🔍 Filtros", style={'color': ACCENT, 'marginBottom': '16px', 'fontSize': '16px'}),
+                    html.H3("Filtros", style={'color': ACCENT, 'marginBottom': '16px', 'fontSize': '16px'}),
                     html.Div(
                         style={'display': 'flex', 'gap': '16px', 'flexWrap': 'wrap', 'alignItems': 'flex-end'},
                         children=[
@@ -87,8 +87,8 @@ def render(app, df: pd.DataFrame):
                             ]),
                             html.Div([
                                 html.Button("✕ Limpar filtros", id='vg-clear', n_clicks=0,
-                                    style={'padding': '9px 16px', 'backgroundColor': '#334155',
-                                           'color': TEXT, 'border': 'none', 'borderRadius': '6px',
+                                    style={'padding': '9px 16px', 'backgroundColor': '#D4AA94',
+                                           'color': '#500903', 'border': 'none', 'borderRadius': '6px',
                                            'cursor': 'pointer', 'fontSize': '13px'})
                             ], style={'alignSelf': 'flex-end'}),
                         ]
@@ -116,8 +116,8 @@ def render(app, df: pd.DataFrame):
                 children=[
                     html.Div(style={**CARD_STYLE, 'flex': '2', 'minWidth': '320px'},
                              children=[
-                                 html.P("💡 Clique em um livro para ver detalhes",
-                                        style={'color': MUTED, 'fontSize': '12px', 'marginBottom': '4px'}),
+                                 html.P("Clique em um livro para ver detalhes",
+                                        style={'color': '#500903', 'fontSize': '12px', 'marginBottom': '4px'}),
                                  dcc.Graph(id='vg-rosca'),
                              ]),
                 ]
@@ -129,8 +129,8 @@ def render(app, df: pd.DataFrame):
                 children=[
                     html.Div(style={**CARD_STYLE, 'flex': '1', 'minWidth': '320px'},
                              children=[
-                                 html.P("💡 Clique em um autor para filtrar os gráficos",
-                                        style={'color': MUTED, 'fontSize': '12px', 'marginBottom': '4px'}),
+                                 html.P("Clique em um autor para filtrar os gráficos",
+                                        style={'color': '#500903', 'fontSize': '12px', 'marginBottom': '4px'}),
                                  dcc.Graph(id='vg-autores')
                                  ]),
                 ]
@@ -142,8 +142,8 @@ def render(app, df: pd.DataFrame):
                 children=[
                     html.Div(style={**CARD_STYLE, 'flex': '2', 'minWidth': '320px'},
                              children=[
-                                 html.P("💡 Clique em um livro para ver detalhes",
-                                        style={'color': MUTED, 'fontSize': '12px', 'marginBottom': '4px'}),
+                                 html.P("Clique em um livro para ver detalhes",
+                                        style={'color': '#500903', 'fontSize': '12px', 'marginBottom': '4px'}),
                                  dcc.Graph(id='vg-top-livros'),
                              ]),
                     html.Div(id='vg-book-card',

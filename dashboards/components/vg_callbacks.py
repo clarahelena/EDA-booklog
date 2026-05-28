@@ -4,18 +4,18 @@ import pandas as pd
 import plotly.express as px
 from dash import Input, Output, html
 
-BG_CARD  = '#1e293b'
-ACCENT   = '#a3e635'
+BG_CARD  = '#500903'
+ACCENT   = '#D4AA94'
 TEXT     = '#f8fafc'
-MUTED    = '#94a3b8'
-TEMPLATE = 'plotly_dark'
+MUTED    = '#e8c9b8'
+TEMPLATE = 'plotly_white'
 TRANSP   = 'rgba(0,0,0,0)'
 
 CARD_STYLE = {
-    'backgroundColor': BG_CARD,
+    'backgroundColor': '#500903',
     'padding': '24px',
     'borderRadius': '12px',
-    'border': '1px solid #334155',
+    'border': '1px solid #7a1005',
 }
 
 
@@ -25,19 +25,18 @@ def _fmt_num(n):
     return str(int(n))
 
 
-def _kpi_card(titulo, valor, icone, cor=ACCENT):
+def _kpi_card(titulo, valor, cor=ACCENT):
     from dash import html
     return html.Div(
         style={**CARD_STYLE, 'textAlign': 'center', 'flex': '1', 'minWidth': '160px'},
         children=[
-            html.Div(icone, style={'fontSize': '32px', 'marginBottom': '8px'}),
             html.Div(valor, style={'fontSize': '28px', 'fontWeight': 'bold', 'color': cor}),
-            html.Div(titulo, style={'fontSize': '13px', 'color': MUTED, 'marginTop': '4px'}),
+            html.Div(titulo, style={'fontSize': '13px', 'color': '#D4AA94', 'marginTop': '4px'}),
         ]
     )
 
 
-def registrar(app, df, df_valido, top_generos, lista_autores,
+def registrar(app, df, df_valido, lista_autores,
               min_paginas, max_paginas, min_nota):
 
     # opções de autor via busca
@@ -103,28 +102,31 @@ def registrar(app, df, df_valido, top_generos, lista_autores,
         kpis = html.Div(
             style={'display': 'flex', 'gap': '16px', 'flexWrap': 'wrap', 'width': '100%'},
             children=[
-                _kpi_card("Livros",         _fmt_num(len(fdf)),                        "📚"),
-                _kpi_card("Autores",         _fmt_num(fdf['author'].nunique()),         "✍️"),
-                _kpi_card("Nota média",      f"{fdf['rating'].mean():.2f} ★" if len(fdf) else "—", "⭐", '#facc15'),
-                _kpi_card("Avaliações",      _fmt_num(fdf['totalratings'].sum()),       "💬", '#38bdf8'),
-                _kpi_card("Média páginas",   f"{int(fdf['pages'].mean())} pgs" if len(fdf) else "—", "📄", '#f472b6'),
+                _kpi_card("Livros",         _fmt_num(len(fdf))),
+                _kpi_card("Autores",         _fmt_num(fdf['author'].nunique())),
+                _kpi_card("Nota média",      f"{fdf['rating'].mean():.2f}" if len(fdf) else "—"),
+                _kpi_card("Avaliações",      _fmt_num(fdf['totalratings'].sum())),
+                _kpi_card("Média páginas",   f"{int(fdf['pages'].mean())} pgs" if len(fdf) else "—"),
             ]
         )
 
         if fdf.empty:
             vazio = px.bar(title="Nenhum resultado para os filtros selecionados", template=TEMPLATE)
-            vazio.update_layout(paper_bgcolor=TRANSP, plot_bgcolor=TRANSP)
+            vazio.update_layout(paper_bgcolor='#ffffff', plot_bgcolor='#ffffff', font=dict(color='#500903'))
             return kpis, vazio, vazio, vazio, vazio
 
         # histograma de notas
         media = fdf['rating'].mean()
         fig_hist = px.histogram(fdf, x='rating', nbins=40,
             title='Distribuição das Notas', template=TEMPLATE,
-            color_discrete_sequence=[ACCENT])
-        fig_hist.update_layout(paper_bgcolor=TRANSP, plot_bgcolor=TRANSP,
-            xaxis_title='Nota', yaxis_title='Qtd', bargap=0.05)
-        fig_hist.add_vline(x=media, line_dash='dash', line_color='#facc15',
-            annotation_text=f' Média: {media:.2f}', annotation_font_color='#facc15')
+            color_discrete_sequence=['#D4AA94'])
+        fig_hist.update_layout(paper_bgcolor='#ffffff', plot_bgcolor='#ffffff',
+            font=dict(color='#500903'),
+            xaxis=dict(title='Nota', color='#500903', gridcolor='#e0e0e0'),
+            yaxis=dict(title='Qtd', color='#500903', gridcolor='#e0e0e0'),
+            bargap=0.05)
+        fig_hist.add_vline(x=media, line_dash='dash', line_color='#500903',
+            annotation_text=f' Média: {media:.2f}', annotation_font_color='#500903')
 
         # scatter reviews × avaliações (debate da comunidade)
         rev_x_ava_stats = px.scatter(
@@ -137,7 +139,11 @@ def registrar(app, df, df_valido, top_generos, lista_autores,
             labels={'totalratings': 'Total de avaliações', 'reviews': 'Reviews escritas', 'rating': 'Nota'}
         )       
         rev_x_ava_stats.update_layout(
-            paper_bgcolor=TRANSP, plot_bgcolor=TRANSP, height=450
+            paper_bgcolor='#ffffff', plot_bgcolor='#ffffff',
+            font=dict(color='#500903'),
+            xaxis=dict(color='#500903', gridcolor='#e0e0e0'),
+            yaxis=dict(color='#500903', gridcolor='#e0e0e0'),
+            height=450
         )
         # scatter autores
         autor_stats = (fdf.groupby('author')
@@ -150,7 +156,12 @@ def registrar(app, df, df_valido, top_generos, lista_autores,
             title='Top Autores: Produtividade × Nota', template=TEMPLATE,
             color_continuous_scale='Turbo', size_max=60, range_color=[0, 5],
             labels={'qtd_livros': 'Livros', 'media_nota': 'Nota média'})
-        fig_autores.update_layout(paper_bgcolor=TRANSP, plot_bgcolor=TRANSP)
+        fig_autores.update_layout(
+            paper_bgcolor='#ffffff', plot_bgcolor='#ffffff',
+            font=dict(color='#500903'),
+            xaxis=dict(color='#500903', gridcolor='#e0e0e0'),
+            yaxis=dict(color='#500903', gridcolor='#e0e0e0')
+        )
 
         # top 10 livros
         top = fdf[fdf['totalratings'] > 0].nlargest(10, 'totalratings').copy()
@@ -159,11 +170,14 @@ def registrar(app, df, df_valido, top_generos, lista_autores,
             color='rating', color_continuous_scale='Turbo', range_color=[0, 5],
             hover_name='title', title='Top 10 Livros Mais Avaliados', template=TEMPLATE,
             labels={'totalratings': 'Total avaliações', 'titulo_curto': '', 'rating': 'Nota'})
-        fig_top.update_layout(yaxis={'categoryorder': 'array', 
-            'categoryarray': top.sort_values('rating', ascending=True)['titulo_curto'].tolist()
-            }, 
-            paper_bgcolor=TRANSP, 
-            plot_bgcolor=TRANSP
+        fig_top.update_layout(
+            yaxis={
+                'categoryorder': 'array',
+                'categoryarray': top.sort_values('rating', ascending=True)['titulo_curto'].tolist()
+            },
+            paper_bgcolor='#ffffff', plot_bgcolor='#ffffff',
+            font=dict(color='#500903'),
+            xaxis=dict(color='#500903', gridcolor='#e0e0e0'),
         )
 
         return kpis, fig_hist, rev_x_ava_stats, fig_autores, fig_top
@@ -199,21 +213,21 @@ def registrar(app, df, df_valido, top_generos, lista_autores,
                 generos_texto = str(generos).replace('[','').replace(']','').replace("'","")
     
             return [
-                html.H3(titulo, style={'color': ACCENT, 'fontSize': '16px', 'fontWeight': 'bold',
+                html.H3(titulo, style={'color': '#500903', 'fontSize': '16px', 'fontWeight': 'bold',
                                        'textAlign': 'center', 'marginBottom': '8px'}),
-                html.P(f"✍️ {autor}", style={'textAlign': 'center', 'color': MUTED,
+                html.P(f"{autor}", style={'textAlign': 'center', 'color': '#500903',
                                               'fontSize': '13px', 'marginBottom': '16px'}),
                 html.Div(style={'textAlign': 'center', 'marginBottom': '16px'}, children=[
                     html.Img(src=img_url, style={'maxWidth': '100%', 'maxHeight': '180px',
                                                   'borderRadius': '8px'})
-                ] if img_url else [html.P("📷 Sem Imagem", style={'color': '#475569', 'fontStyle': 'italic'})]),
+                ] if img_url else [html.P(" Sem Imagem", style={'color': '#475569', 'fontStyle': 'italic'})]),
                 html.Div(style={'marginBottom': '12px'}, children=[
-                    html.Span("Gêneros: ", style={'color': ACCENT, 'fontWeight': 'bold', 'fontSize': '13px'}),
-                    html.Span(generos_texto, style={'color': '#cbd5e1', 'fontSize': '13px'}),
+                    html.Span("Gêneros: ", style={'color': '#500903', 'fontWeight': 'bold', 'fontSize': '13px'}),
+                    html.Span(generos_texto, style={'color': '#500903', 'fontSize': '13px'}),
                 ]),
-                html.Hr(style={'borderColor': '#334155', 'margin': '12px 0'}),
-                html.P("Sinopse:", style={'color': ACCENT, 'fontWeight': 'bold', 'fontSize': '13px', 'marginBottom': '5px'}),
-                html.P(descricao, style={'color': '#94a3b8', 'fontSize': '12px',
+                html.Hr(style={'borderColor': '#e0e0e0', 'margin': '12px 0'}),
+                html.P("Sinopse:", style={'color': '#500903', 'fontWeight': 'bold', 'fontSize': '13px', 'marginBottom': '5px'}),
+                html.P(descricao, style={'color': '#500903', 'fontSize': '12px',
                                          'textAlign': 'justify', 'lineHeight': '1.5'}),
             ]
         except Exception as e:

@@ -35,20 +35,20 @@ layout_rosca = rosca_formatos.render(app, df)
 
 # layout Global
 app.layout = html.Div(
-    style={'backgroundColor': '#0f172a', 'color': '#f8fafc', 'minHeight': '100vh', 'fontFamily': 'system-ui, sans-serif'},
+    style={'backgroundColor': '#3d0702', 'color': '#f8fafc', 'minHeight': '100vh', 'fontFamily': 'system-ui, sans-serif'},
     children=[
         dcc.Location(id='url', refresh=False),
 
         html.Div(
-            style={'backgroundColor': '#1e293b', 'padding': '16px 40px',
+            style={'backgroundColor': '#500903', 'padding': '16px 40px',
                    'display': 'flex', 'gap': '32px', 'alignItems': 'center',
-                   'borderBottom': '2px solid #a3e635'},
+                   'borderBottom': '2px solid #D4AA94'},
             children=[
-                html.Span("Booklog", style={'color': '#a3e635', 'fontWeight': 'bold', 'fontSize': '20px'}),
+                html.Span("Booklog", style={'color': '#D4AA94', 'fontWeight': 'bold', 'fontSize': '20px'}),
                 dcc.Link("Visão Geral", href="/",
-                    style={'color': '#94a3b8', 'textDecoration': 'none', 'fontSize': '15px'}),
+                    style={'color': '#e8c9b8', 'textDecoration': 'none', 'fontSize': '15px'}),
                 dcc.Link("Análise de Livros", href="/analise",
-                    style={'color': '#94a3b8', 'textDecoration': 'none', 'fontSize': '15px'}),
+                    style={'color': '#e8c9b8', 'textDecoration': 'none', 'fontSize': '15px'}),
             ]
         ),
 
@@ -60,7 +60,7 @@ app.layout = html.Div(
 def render_page(pathname):
     if pathname == '/analise':
         return html.Div([
-            html.H1("Análise de Livros", style={'textAlign': 'center', 'marginBottom': '40px', 'color': '#A3E635'}),
+            html.H1("Análise de Livros", style={'textAlign': 'center', 'marginBottom': '40px', 'color': '#D4AA94'}),
             layout_analise,
 
             html.Div(
