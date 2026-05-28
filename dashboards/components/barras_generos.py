@@ -80,7 +80,7 @@ def render(app, df):
             plot_bgcolor='#ffffff',
             font=dict(color='#500903', family='Poppins'),
             xaxis=dict(color='#500903', gridcolor='#e0e0e0'),
-            coloraxis_colorbar=dict(tickfont=dict(color='#500903'), titlefont=dict(color='#500903'))
+            coloraxis_colorbar=dict(tickfont=dict(color='#500903'), title=dict(font=dict(color='#500903')))
 
         )
         
