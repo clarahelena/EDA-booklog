@@ -8,7 +8,15 @@ def render(app, df):
     # lauyout exclusivo desse componente
     layout = html.Div([
         dcc.Graph(id='genre-bar-chart')
-    ], style={'backgroundColor': '#500903', 'padding': '20px', 'borderRadius': '12px'})
+    ], style={
+        'backgroundColor': '#FFFFFF', 
+        'padding': '24px', 
+        'borderRadius': '12px',
+        'border': '1px solid #E2E8F0', 
+        'boxShadow': '0px 4px 8px rgba(0, 0, 0, 0.05)',
+        'height': '100%',
+        'boxSizing': 'border-box'
+    })
 
     @app.callback(
         Output('genre-bar-chart', 'figure'),
@@ -39,7 +47,7 @@ def render(app, df):
         # se os filtros zerar os livros
         if filtered_df.empty:
             vazio = px.bar(title="Nenhum livro atende a esses filtros", template='plotly_dark')
-            vazio.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='#500903'))
+            vazio.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='#252525'))
             return vazio
 
         # aplica a regra do Gênero
@@ -78,9 +86,9 @@ def render(app, df):
             yaxis={'categoryorder':'total ascending'},
             paper_bgcolor='#ffffff', 
             plot_bgcolor='#ffffff',
-            font=dict(color='#500903', family='Poppins'),
-            xaxis=dict(color='#500903', gridcolor='#e0e0e0'),
-            coloraxis_colorbar=dict(tickfont=dict(color='#500903'), title=dict(font=dict(color='#500903')))
+            font=dict(color='#252525', family='Poppins'),
+            xaxis=dict(color='#252525', gridcolor='#e0e0e0'),
+            coloraxis_colorbar=dict(tickfont=dict(color='#252525'), title=dict(font=dict(color='#252525')))
 
         )
         

@@ -12,13 +12,13 @@ def render(app, df):
         html.H4(
             id='format-donut-title',
             style={
-                'color': '#ffffff',
+                'color': '#252525',
                 'fontFamily': 'Poppins',
                 'textAlign': 'center',
-                'margin': '0 0 10px 0',
+                'margin': '5 0 10px 0',
                 'fontSize': 'clamp(14px, 1.2vw, 18px)', 
                 'whiteSpace': 'normal',
-                'fontWeight': '600'
+                'fontWeight': 500,
             }
         ),
         dcc.Graph(
@@ -124,11 +124,11 @@ def render(app, df):
         # anotacao central da rosquinha
         fig.add_annotation(
             text=(
-                f"<span style='font-size:11px;color:#500903'>TOTAL</span>"
+                f"<span style='font-size:11px;color:#252525'>TOTAL</span>"
                 f"<span style='font-size:6px'><br><br></span>"
-                f"<b style='font-size:22px;color:#500903'>{total:,}</b>"
+                f"<b style='font-size:22px;color:#252525'>{total:,}</b>"
                 f"<span style='font-size:6px'><br><br></span>"
-                f"<span style='font-size:11px;color:#500903'>LIVROS</span>"
+                f"<span style='font-size:11px;color:#252525'>LIVROS</span>"
             ),
             x=0.5, y=0.5,
             showarrow=False,
@@ -140,7 +140,7 @@ def render(app, df):
         fig.update_layout(
             showlegend=True,
             legend=dict(
-                font=dict(size=11, color="#500903", family="Poppins"),
+                font=dict(size=11, color="#252525", family="Poppins"),
                 bgcolor='rgba(0,0,0,0)',
                 orientation='h',
                 yanchor='top',

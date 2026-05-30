@@ -1,108 +1,66 @@
-import itertools
-from collections import Counter
 import pandas as pd
-import plotly.express as px
 from dash import Input, Output, html
 
-BG_CARD  = '#500903'
-ACCENT   = '#D4AA94'
-TEXT     = '#f8fafc'
-MUTED    = '#e8c9b8'
-TEMPLATE = 'plotly_white'
-TRANSP   = 'rgba(0,0,0,0)'
-
 CARD_STYLE = {
-    'backgroundColor': '#500903',
+    'backgroundColor': '#FFFFFF',
     'padding': '24px',
     'borderRadius': '12px',
-    'border': '1px solid #7a1005',
+    'border': '1px solid #E2E8F0',
+    'boxShadow': '0px 4px 8px rgba(0, 0, 0, 0.05)'
 }
-
 
 def _fmt_num(n):
     if n >= 1_000_000: return f"{n/1_000_000:.1f}M"
     if n >= 1_000:     return f"{n/1_000:.1f}K"
     return str(int(n))
 
-
-def _kpi_card(titulo, valor, cor=ACCENT):
-    from dash import html
+def _kpi_card(titulo, valor, cor='#252525'):
     return html.Div(
-        style={**CARD_STYLE, 'textAlign': 'center', 'flex': '1', 'minWidth': '160px'},
+        style={**CARD_STYLE, 'textAlign': 'center', 'flex': '1', 'minWidth': '160px', 'marginBottom': '0'},
         children=[
             html.Div(valor, style={'fontSize': '28px', 'fontWeight': 'bold', 'color': cor}),
-            html.Div(titulo, style={'fontSize': '13px', 'color': '#D4AA94', 'marginTop': '4px'}),
+            html.Div(titulo, style={'fontSize': '13px', 'color': '#252525', 'marginTop': '4px'}),
         ]
     )
 
-
-def registrar(app, df, df_valido, lista_autores,
-              min_paginas, max_paginas, min_nota):
-
-    # opções de autor via busca
-    @app.callback(Output('vg-author', 'options'), Input('vg-author', 'search_value'))
-    def update_author_opts(search):
-        if not search:
-            return [{'label': a, 'value': a} for a in lista_autores[:50]]
-        matches = [a for a in lista_autores if search.lower() in a.lower()]
-        return [{'label': a, 'value': a} for a in matches[:50]]
-
-    # opções de livro via busca
+def registrar(app, df, df_valido, *args):
     @app.callback(
-        Output('vg-author', 'value'), 
-        Input('vg-autores', 'clickData'), 
-        prevent_initial_call=True
+        Output('vg-kpi-row', 'children'),
+        [
+            Input('genre-select', 'value'),
+            Input('author-select', 'value'),
+            Input('min-pages-input', 'value'),
+            Input('max-pages-input', 'value'),
+            Input('min-ratings-input', 'value'),
+            Input('max-ratings-input', 'value')
+        ]
     )
-    def autor_click_para_filtro(clickData):
-        if clickData is None:
-            return None
-        return clickData['points'][0]['hovertext']
+    def update_kpis(genre, author, min_p, max_p, min_ratings, max_ratings):
+        # Tratamento de campos vazios, caso o usuário apague o número
+        if min_p is None: min_p = 0
+        if max_p is None: max_p = float('inf')
+        if min_ratings is None: min_ratings = 0
+        if max_ratings is None: max_ratings = float('inf')
 
-    # limpar filtros
-    @app.callback(
-        Output('vg-genre', 'value'),   
-        Output('vg-author', 'value', allow_duplicate=True),
-        Output('vg-min-pages', 'value'), Output('vg-max-pages', 'value'),
-        Output('vg-min-rating', 'value'), Output('vg-max-rating', 'value'),
-        Input('vg-clear', 'n_clicks'), 
-        prevent_initial_call=True
-    )
-    def clear_filters(_):
-        return None,  None, min_paginas, max_paginas, min_nota, 5.0
-
-    # atualiza KPIs e gráficos
-    @app.callback(
-        Output('vg-kpi-row',    'children'),
-        Output('vg-hist',       'figure'),
-        Output('vg-rosca',      'figure'),
-        Output('vg-autores',    'figure'),
-        Output('vg-top-livros', 'figure'),
-        Input('vg-genre',      'value'),
-        Input('vg-author',     'value'),
-        Input('vg-min-pages',  'value'),
-        Input('vg-max-pages',  'value'),
-        Input('vg-min-rating', 'value'),
-        Input('vg-max-rating', 'value'),
-    )
-    def update_all(genre, author, min_p, max_p, min_r, max_r):
-        if min_p is None: min_p = min_paginas
-        if max_p is None: max_p = max_paginas
-        if min_r is None: min_r = min_nota
-        if max_r is None: max_r = 5.0
-
+        # Aplica os filtros numéricos (Páginas e Avaliações)
         fdf = df_valido[
-            (df_valido['pages']  >= min_p) & (df_valido['pages']  <= max_p) &
-            (df_valido['rating'] >= min_r) & (df_valido['rating'] <= max_r)
+            (df_valido['pages'] >= min_p) & 
+            (df_valido['pages'] <= max_p) &
+            (df_valido['totalratings'] >= min_ratings) & 
+            (df_valido['totalratings'] <= max_ratings)
         ].copy()
 
-        if genre:  fdf = fdf[fdf['generos_lista'].apply(lambda x: genre in x)]
-        if author: fdf = fdf[fdf['author'] == author]
+        # Aplica os filtros de texto (Gênero e Autor)
+        if genre:  
+            fdf = fdf[fdf['generos_lista'].apply(lambda x: genre in x)]
+        if author: 
+            fdf = fdf[fdf['author'] == author]
 
-        # KPIs
+        # Gera os Cards atualizados
         kpis = html.Div(
             style={'display': 'flex', 'gap': '16px', 'flexWrap': 'wrap', 'width': '100%'},
             children=[
-                _kpi_card("Livros",         _fmt_num(len(fdf))),
+                _kpi_card("Livros",          _fmt_num(len(fdf))),
                 _kpi_card("Autores",         _fmt_num(fdf['author'].nunique())),
                 _kpi_card("Nota média",      f"{fdf['rating'].mean():.2f}" if len(fdf) else "—"),
                 _kpi_card("Avaliações",      _fmt_num(fdf['totalratings'].sum())),
@@ -110,125 +68,4 @@ def registrar(app, df, df_valido, lista_autores,
             ]
         )
 
-        if fdf.empty:
-            vazio = px.bar(title="Nenhum resultado para os filtros selecionados", template=TEMPLATE)
-            vazio.update_layout(paper_bgcolor='#ffffff', plot_bgcolor='#ffffff', font=dict(color='#500903'))
-            return kpis, vazio, vazio, vazio, vazio
-
-        # histograma de notas
-        media = fdf['rating'].mean()
-        fig_hist = px.histogram(fdf, x='rating', nbins=40,
-            title='Distribuição das Notas', template=TEMPLATE,
-            color_discrete_sequence=['#D4AA94'])
-        fig_hist.update_layout(paper_bgcolor='#ffffff', plot_bgcolor='#ffffff',
-            font=dict(color='#500903'),
-            xaxis=dict(title='Nota', color='#500903', gridcolor='#e0e0e0'),
-            yaxis=dict(title='Qtd', color='#500903', gridcolor='#e0e0e0'),
-            bargap=0.05)
-        fig_hist.add_vline(x=media, line_dash='dash', line_color='#500903',
-            annotation_text=f' Média: {media:.2f}', annotation_font_color='#500903')
-
-        # scatter reviews × avaliações (debate da comunidade)
-        rev_x_ava_stats = px.scatter(
-            fdf[fdf['totalratings'] > 0].nlargest(500, 'totalratings'),
-            x='totalratings', y='reviews',
-            color='rating', color_continuous_scale='Turbo', range_color=[0, 5],
-            hover_name='title', size='rating', size_max=20,
-            title='Debate da Comunidade: Avaliações × Reviews',
-            template=TEMPLATE,
-            labels={'totalratings': 'Total de avaliações', 'reviews': 'Reviews escritas', 'rating': 'Nota'}
-        )       
-        rev_x_ava_stats.update_layout(
-            paper_bgcolor='#ffffff', plot_bgcolor='#ffffff',
-            font=dict(color='#500903'),
-            xaxis=dict(color='#500903', gridcolor='#e0e0e0'),
-            yaxis=dict(color='#500903', gridcolor='#e0e0e0'),
-            height=450
-        )
-        # scatter autores
-        autor_stats = (fdf.groupby('author')
-            .agg(qtd_livros=('title','count'), media_nota=('rating','mean'),
-                 total_ratings=('totalratings','sum'))
-            .reset_index())
-        top_autores = autor_stats[autor_stats['qtd_livros'] >= 2].nlargest(15, 'total_ratings')
-        fig_autores = px.scatter(top_autores, x='qtd_livros', y='media_nota',
-            size='total_ratings', color='media_nota', hover_name='author',
-            title='Top Autores: Produtividade × Nota', template=TEMPLATE,
-            color_continuous_scale='Turbo', size_max=60, range_color=[0, 5],
-            labels={'qtd_livros': 'Livros', 'media_nota': 'Nota média'})
-        fig_autores.update_layout(
-            paper_bgcolor='#ffffff', plot_bgcolor='#ffffff',
-            font=dict(color='#500903'),
-            xaxis=dict(color='#500903', gridcolor='#e0e0e0'),
-            yaxis=dict(color='#500903', gridcolor='#e0e0e0')
-        )
-
-        # top 10 livros
-        top = fdf[fdf['totalratings'] > 0].nlargest(10, 'totalratings').copy()
-        top['titulo_curto'] = top['title'].str[:45] + top['title'].apply(lambda x: '…' if len(x) > 45 else '')
-        fig_top = px.bar(top, x='totalratings', y='titulo_curto', orientation='h',
-            color='rating', color_continuous_scale='Turbo', range_color=[0, 5],
-            hover_name='title', title='Top 10 Livros Mais Avaliados', template=TEMPLATE,
-            labels={'totalratings': 'Total avaliações', 'titulo_curto': '', 'rating': 'Nota'})
-        fig_top.update_layout(
-            yaxis={
-                'categoryorder': 'array',
-                'categoryarray': top.sort_values('rating', ascending=True)['titulo_curto'].tolist()
-            },
-            paper_bgcolor='#ffffff', plot_bgcolor='#ffffff',
-            font=dict(color='#500903'),
-            xaxis=dict(color='#500903', gridcolor='#e0e0e0'),
-        )
-
-        return kpis, fig_hist, rev_x_ava_stats, fig_autores, fig_top
-    # card de detalhes ao clicar no top livros
-    @app.callback(
-        Output('vg-book-card', 'children'),
-        Input('vg-rosca', 'clickData'),
-        Input('vg-top-livros', 'clickData'),
-        prevent_initial_call=True
-    )
-    def book_card(clickData_rosca, clickData_top):
-        from dash import ctx
-        trigger = ctx.triggered_id
-        clickData = clickData_rosca if trigger == 'vg-rosca' else clickData_top
-        
-        if clickData is None:
-            return [html.P("Clique em um livro no gráfico para ver os detalhes.",
-                           style={'textAlign': 'center', 'color': '#64748b',
-                                  'marginTop': '60px', 'fontSize': '14px'})]
-        try:
-            titulo_clicado = clickData['points'][0]['hovertext']
-            livro = df[df['title'] == titulo_clicado].iloc[0]
-    
-            img_url   = livro.get('img', livro.get('image_url', ''))
-            titulo    = livro.get('title', 'Título Indisponível')
-            autor     = livro.get('author', '')
-            descricao = livro.get('desc', livro.get('description', 'Sem descrição disponível.'))
-    
-            generos = livro.get('genres', livro.get('genre', ''))
-            if isinstance(generos, list):
-                generos_texto = ", ".join(generos)
-            else:
-                generos_texto = str(generos).replace('[','').replace(']','').replace("'","")
-    
-            return [
-                html.H3(titulo, style={'color': '#500903', 'fontSize': '16px', 'fontWeight': 'bold',
-                                       'textAlign': 'center', 'marginBottom': '8px'}),
-                html.P(f"{autor}", style={'textAlign': 'center', 'color': '#500903',
-                                              'fontSize': '13px', 'marginBottom': '16px'}),
-                html.Div(style={'textAlign': 'center', 'marginBottom': '16px'}, children=[
-                    html.Img(src=img_url, style={'maxWidth': '100%', 'maxHeight': '180px',
-                                                  'borderRadius': '8px'})
-                ] if img_url else [html.P(" Sem Imagem", style={'color': '#475569', 'fontStyle': 'italic'})]),
-                html.Div(style={'marginBottom': '12px'}, children=[
-                    html.Span("Gêneros: ", style={'color': '#500903', 'fontWeight': 'bold', 'fontSize': '13px'}),
-                    html.Span(generos_texto, style={'color': '#500903', 'fontSize': '13px'}),
-                ]),
-                html.Hr(style={'borderColor': '#e0e0e0', 'margin': '12px 0'}),
-                html.P("Sinopse:", style={'color': '#500903', 'fontWeight': 'bold', 'fontSize': '13px', 'marginBottom': '5px'}),
-                html.P(descricao, style={'color': '#500903', 'fontSize': '12px',
-                                         'textAlign': 'justify', 'lineHeight': '1.5'}),
-            ]
-        except Exception as e:
-            return [html.P(f"Erro: {str(e)}", style={'color': '#ef4444', 'fontSize': '12px'})]
+        return kpis

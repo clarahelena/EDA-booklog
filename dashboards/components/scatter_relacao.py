@@ -21,19 +21,19 @@ def render(app, df):
             style={'display': 'flex', 'gap': '20px', 'justifyContent': 'center', 'alignItems': 'flex-end', 'marginBottom': '40px', 'flexWrap': 'wrap'},
             children=[
                 html.Div([
-                    html.Label("Métrica Eixo X:", style={'display': 'block', 'marginBottom': '5px'}),
+                    html.Label("Métrica Eixo X:", style={'display': 'block', 'marginBottom': '5px', 'fontWeight': 'bold'}),
                     dcc.Dropdown(id='x-axis-select', options=[{'label': nome, 'value': valor} for valor, nome in metrics_mapping.items()], value='pages', clearable=False, style={'width': '160px', 'color': '#000'})
                 ]),
                 html.Div([
-                    html.Label("Métrica Eixo Y:", style={'display': 'block', 'marginBottom': '5px'}),
+                    html.Label("Métrica Eixo Y:", style={'display': 'block', 'marginBottom': '5px', 'fontWeight': 'bold'}),
                     dcc.Dropdown(id='y-axis-select', options=[{'label': nome, 'value': valor} for valor, nome in metrics_mapping.items()], value='totalratings', clearable=False, style={'width': '160px', 'color': '#000'})
                 ]),
                 html.Div([
-                    html.Label("Buscar Autor:", style={'display': 'block', 'marginBottom': '5px'}),
+                    html.Label("Buscar Autor:", style={'display': 'block', 'marginBottom': '5px', 'fontWeight': 'bold'}),
                     dcc.Dropdown(id='author-select', placeholder="Selecione um autor...", searchable=True, clearable=True, style={'width': '220px', 'color': '#000'})
                 ]),
                 html.Div([
-                    html.Label("Foco por Gênero:", style={'display': 'block', 'marginBottom': '5px', 'color': '#500903', 'fontWeight': 'bold'}),
+                    html.Label("Foco por Gênero:", style={'display': 'block', 'marginBottom': '5px', 'fontWeight': 'bold'}),
                     dcc.Dropdown(id='genre-select', options=[{'label': g, 'value': g} for g in top_generos], placeholder="Ex: Fantasy", searchable=True, clearable=True, style={'width': '220px', 'color': '#000'})
                 ])
             ]
@@ -43,10 +43,10 @@ def render(app, df):
         html.Div(
             style={'display': 'flex', 'gap': '20px', 'justifyContent': 'center', 'flexWrap': 'wrap', 'marginBottom': '40px'},
             children=[
-                html.Div([html.Label("Mín. Avaliações:", style={'display': 'block', 'marginBottom': '5px'}), dcc.Input(id='min-ratings-input', type='number', value=100, min=0, style={'width': '160px', 'padding': '8px', 'height': '44px', 'borderRadius': '4px', 'color': '#000000'})]),
-                html.Div([html.Label("Máx. Avaliações:", style={'display': 'block', 'marginBottom': '5px'}), dcc.Input(id='max-ratings-input', type='number', value=500000, min=0, style={'width': '160px', 'padding': '8px', 'height': '44px', 'borderRadius': '4px', 'color': '#000000'})]),
-                html.Div([html.Label("Mín. Páginas:", style={'display': 'block', 'marginBottom': '5px'}), dcc.Input(id='min-pages-input', type='number', value=0, min=0, style={'width': '160px', 'padding': '8px', 'height': '44px', 'borderRadius': '4px', 'color': '#000000', 'marginLeft': '20px'})]),
-                html.Div([html.Label("Máx. Páginas:", style={'display': 'block', 'marginBottom': '5px'}), dcc.Input(id='max-pages-input', type='number', value=2000, min=0, style={'width': '160px', 'padding': '8px', 'height': '44px', 'borderRadius': '4px', 'color': '#000000'})])
+                html.Div([html.Label("Mín. Avaliações:", style={'display': 'block', 'marginBottom': '5px', 'fontWeight': 'bold'}), dcc.Input(id='min-ratings-input', type='number', value=100, min=0, style={'width': '160px', 'padding': '8px', 'height': '44px', 'borderRadius': '4px', 'color': '#000000'})]),
+                html.Div([html.Label("Máx. Avaliações:", style={'display': 'block', 'marginBottom': '5px', 'fontWeight': 'bold'}), dcc.Input(id='max-ratings-input', type='number', value=500000, min=0, style={'width': '160px', 'padding': '8px', 'height': '44px', 'borderRadius': '4px', 'color': '#000000'})]),
+                html.Div([html.Label("Mín. Páginas:", style={'display': 'block', 'marginBottom': '5px', 'fontWeight': 'bold'}), dcc.Input(id='min-pages-input', type='number', value=0, min=0, style={'width': '160px', 'padding': '8px', 'height': '44px', 'borderRadius': '4px', 'color': '#000000', 'marginLeft': '20px'})]),
+                html.Div([html.Label("Máx. Páginas:", style={'display': 'block', 'marginBottom': '5px', 'fontWeight': 'bold'}), dcc.Input(id='max-pages-input', type='number', value=2000, min=0, style={'width': '160px', 'padding': '8px', 'height': '44px', 'borderRadius': '4px', 'color': '#000000'})])
             ]
         ),
 
@@ -139,7 +139,7 @@ def render(app, df):
                 'rating': 'Nota' 
             }
         )
-        fig.update_layout(transition_duration=300, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_family="Poppins", font=dict(color='#500903'), xaxis=dict(color='#500903', gridcolor='#e0e0e0'), yaxis=dict(color='#500903', gridcolor='#e0e0e0'))
+        fig.update_layout(transition_duration=300, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_family="Poppins", font=dict(color='#252525'), xaxis=dict(color='#252525', gridcolor='#e0e0e0'), yaxis=dict(color='#252525', gridcolor='#e0e0e0'))
         return fig
 
 
@@ -176,7 +176,7 @@ def render(app, df):
             # estrutura html do card
             card_html = [
                 # titulo
-                html.H3(titulo, style={'color': '#500903', 'fontSize': '16px', 'fontWeight': 'bold', 'textAlign': 'center', 'marginBottom': '20px'}),
+                html.H3(titulo, style={'color': '#252525', 'fontSize': '16px', 'fontWeight': 600, 'textAlign': 'center', 'marginBottom': '20px'}),
                 
                 # imagem
                 html.Div(
@@ -188,16 +188,16 @@ def render(app, df):
                 
                 # generos
                 html.Div(style={'marginBottom': '15px'}, children=[
-                    html.Span("Gêneros: ", style={'color': '#500903', 'fontWeight': 'bold', 'fontSize': '13px'}),
-                    html.Span(generos_texto, style={'color': '#500903', 'fontSize': '13px'})
+                    html.Span("Gêneros: ", style={'color': '#252525', 'fontWeight': 'bold', 'fontSize': '13px'}),
+                    html.Span(generos_texto, style={'color': '#252525', 'fontSize': '13px'})
                 ]),
                 
                 html.Hr(style={'borderColor': '#e0e0e0', 'margin': '15px 0'}),
                 
                 # descriçao
                 html.Div(children=[
-                    html.P("Sinopse:", style={'color': '#500903', 'fontWeight': 'bold', 'fontSize': '13px', 'marginBottom': '5px'}),
-                    html.P(descricao, style={'color': '#500903', 'fontSize': '12px', 'textAlign': 'justify', 'lineHeight': '1.5'})
+                    html.P("Sinopse:", style={'color': '#252525', 'fontWeight': 'bold', 'fontSize': '13px', 'marginBottom': '5px'}),
+                    html.P(descricao, style={'color': '#252525', 'fontSize': '12px', 'textAlign': 'justify', 'lineHeight': '1.5'})
                 ])
             ]
             return card_html
