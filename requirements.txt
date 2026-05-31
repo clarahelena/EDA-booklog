@@ -6,3 +6,4 @@ plotly
 nbformat>=4.2.0
 pyarrow
 dash
+scipy
