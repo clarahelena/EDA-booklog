@@ -2,7 +2,7 @@
 nixPkgs = ["python312"]
 
 [phases.install]
-cmds = ["pip install pandas numpy plotly dash pyarrow"]
+cmds = ["pip install pandas numpy plotly dash pyarrow scipy"]
 
 [start]
 cmd = "python app.py"
