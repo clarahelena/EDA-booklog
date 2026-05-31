@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 from dash import Dash, html, dcc, Input, Output
-from components import scatter_relacao, barras_generos, rosca_formatos, visao_geral, analise_hipoteses, analise_comunidade
+from components import scatter_relacao, barras_generos, rosca_formatos, visao_geral, analise_hipoteses, analise_comunidade, ml_clustering
 
 # função para converter a string do parquet em uma lista
 def extrair_generos(x):
@@ -34,6 +34,7 @@ layout_visao   = visao_geral.render(app, df)
 layout_rosca = rosca_formatos.render(app, df)
 layout_hipoteses = analise_hipoteses.render(app, df)
 layout_comunidade = analise_comunidade.render(app, df)
+layout_ml = ml_clustering.render(app, df)
 
 # layout Global
 app.layout = html.Div(
@@ -52,7 +53,9 @@ app.layout = html.Div(
                 dcc.Link("Insight 1", href="/hipoteses",
                     style={'color': '#252525', 'textDecoration': 'none', 'fontSize': '16px', 'fontWeight': '600'}),
                 dcc.Link("Insight 2", href="/comunidade",
-                    style={'color': '#252525', 'textDecoration': 'none', 'fontSize': '16px', 'fontWeight': '600'})
+                    style={'color': '#252525', 'textDecoration': 'none', 'fontSize': '16px', 'fontWeight': '600'}),
+                dcc.Link("Clusterização", href="/ml",
+                    style={'color': '#252525', 'textDecoration': 'none', 'fontSize': '16px', 'fontWeight': '600'}),
             ]
         ),
 
@@ -63,13 +66,17 @@ app.layout = html.Div(
 @app.callback(Output('page-content', 'children'), Input('url', 'pathname'))
 def render_page(pathname):
     
-    # path insight 2
-    if pathname == '/comunidade':
-        return layout_comunidade
-        
     # path insight 1
-    elif pathname == '/hipoteses':
+    if pathname == '/hipoteses':
         return layout_hipoteses
+        
+    # path insight 2
+    elif pathname == '/comunidade':
+        return layout_comunidade
+    
+    # path ML 1
+    elif pathname == '/ml':
+        return layout_ml
         
     # path da home
     return html.Div([
