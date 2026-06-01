@@ -164,7 +164,6 @@ def storytelling_layout():
         sections.append(
             html.Div([
                 html.Div([
-                    html.Span(s, style={"fontSize": "14px"}),
                     s["label"],
                 ], style=STYLE_SECTION_LABEL),
                 html.P(
@@ -178,7 +177,7 @@ def storytelling_layout():
 
         # botão flutuante
         html.Button(
-            ["📖 ", "Data Storytelling"],
+            "Data Storytelling",
             id="story-btn-open",
             style=STYLE_BTN,
             n_clicks=0,

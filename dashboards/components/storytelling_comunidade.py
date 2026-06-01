@@ -40,14 +40,14 @@ def storytelling_layout():
         is_last = i == len(STORY_SECTIONS) - 1
         sections.append(
             html.Div([
-                html.Div([html.Span(s, style={"fontSize": "14px"}), s["label"]], style=STYLE_SECTION_LABEL),
+                html.Div([s["label"]], style=STYLE_SECTION_LABEL),
                 html.P(s["text"], style={**STYLE_SECTION_TEXT, **({"borderBottom": "none", "marginBottom": 0} if is_last else {})}),
             ])
         )
 
     return html.Div([
         # IDs exclusivos com "com-" = comunidade data storytelling
-        html.Button(["📖 ", "Data Storytelling"], id="story-com-btn-open", style=STYLE_BTN, n_clicks=0),
+        html.Button( "Data Storytelling", id="story-com-btn-open", style=STYLE_BTN, n_clicks=0),
         html.Div(id="story-com-overlay", style={**STYLE_OVERLAY, "display": "none"}, n_clicks=0),
         html.Div(id="story-com-sidebar", style={**STYLE_SIDEBAR, "transform": "translateX(100%)"}, children=[
             html.Button("✕", id="story-com-btn-close", style=STYLE_CLOSE, n_clicks=0),
