@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 from dash import Dash, html, dcc, Input, Output
-from components import scatter_relacao, barras_generos, rosca_formatos, visao_geral, analise_hipoteses, analise_comunidade, ml_clustering
+from components import scatter_relacao, barras_generos, rosca_formatos, visao_geral, analise_hipoteses, analise_comunidade, ml_clustering, ml_classificacao
 
 # função para converter a string do parquet em uma lista
 def extrair_generos(x):
@@ -35,6 +35,7 @@ layout_rosca = rosca_formatos.render(app, df)
 layout_hipoteses = analise_hipoteses.render(app, df)
 layout_comunidade = analise_comunidade.render(app, df)
 layout_ml = ml_clustering.render(app, df)
+layout_ml_class = ml_classificacao.render(app, df)
 
 # layout Global
 app.layout = html.Div(
@@ -54,7 +55,9 @@ app.layout = html.Div(
                     style={'color': '#252525', 'textDecoration': 'none', 'fontSize': '16px', 'fontWeight': '600'}),
                 dcc.Link("Insight 2", href="/comunidade",
                     style={'color': '#252525', 'textDecoration': 'none', 'fontSize': '16px', 'fontWeight': '600'}),
-                dcc.Link("Clusterização", href="/ml",
+                dcc.Link("ML Clusterização", href="/ml",
+                    style={'color': '#252525', 'textDecoration': 'none', 'fontSize': '16px', 'fontWeight': '600'}),
+                dcc.Link("ML Classificação", href="/ml-classificacao",
                     style={'color': '#252525', 'textDecoration': 'none', 'fontSize': '16px', 'fontWeight': '600'}),
             ]
         ),
@@ -77,7 +80,10 @@ def render_page(pathname):
     # path ML 1
     elif pathname == '/ml':
         return layout_ml
-        
+    
+    elif pathname == '/ml-classificacao':
+        return layout_ml_class
+            
     # path da home
     return html.Div([
         html.H1("Visão Geral & Análise", style={'textAlign': 'center', 'marginBottom': '32px', 'color': '#252525', 'fontWeight': 'bold'}),

@@ -32,12 +32,12 @@ STATS_CONFIG = {
     2: {"paginas": 295,  "nota": 3.95, "avaliacoes": 410},
 }
 
-# Loader do CSV
+# Loader do parquet
 def _carregar_df_clusters(base_dir: str) -> pd.DataFrame | None:
-    caminho_correto = os.path.abspath(os.path.join(base_dir, '..', '..', 'Machine Learning', 'data', 'processed', 'livros_com_clusters.csv'))
+    caminho_correto = os.path.abspath(os.path.join(base_dir, '..', '..', 'Machine Learning', 'data', 'processed', 'livros_com_clusters.parquet'))
     
     if os.path.exists(caminho_correto):
-        return pd.read_csv(caminho_correto)
+        return pd.read_parquet(caminho_correto)
         
     return None
 
