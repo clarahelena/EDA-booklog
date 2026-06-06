@@ -1,3 +1,6 @@
 .DS_Store
 **/__pycache__/
 *.pyc
+
+# Ignorar datasets muito grandes (>100MB) que violam o limite do GitHub
+Machine Learning/data/processed/books_exploded_mapped.parquet
