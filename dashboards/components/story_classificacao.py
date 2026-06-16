@@ -37,7 +37,7 @@ STORY_SECTIONS = [
         "text": (
             "Embora o XGBoost tenha vencido na eficiência matemática global, a avaliação "
             "cega revelou um paradoxo de negócio: a Random Forest foi superior na tarefa "
-            "mais crítica do produto, alcançando o maior índice de Sensibilidade (Recall de 0.59 "
+            "mais crítica do produto, alcançando o maior índice de Sensibilidade (Recall de 0.54 "
             "na classe Bestseller). Para o Booklog, o custo de ignorar um fenômeno editorial "
             "(falso negativo) é muito maior do que inflar uma obra média, justificando a RF."
         ),
