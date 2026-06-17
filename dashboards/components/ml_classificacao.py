@@ -309,20 +309,16 @@ def render(app, df_books: pd.DataFrame) -> html.Div:
         story_classificacao.storytelling_layout(),
 
         html.H2(
-            "Machine Learning · Seleção do Modelo e Explicabilidade",
+            "Random Forest· Seleção do Modelo e Explicabilidade",
             style={"fontWeight": "700", "fontSize": "22px", "color": "#252525", "marginTop": "32px"}
-        ),
-        
-        # Inserção da nova tabela comparativa
-        _build_tabela_comparativa(),
-
-        html.P(
-            "Desempenho final do modelo otimizado e explicabilidade (SHAP) do processo decisório. "
-            "Selecione as abas abaixo para ver como as características empurram a decisão para cada classe.",
-            style={"fontSize": "14px", "color": "#6B7280", "marginBottom": "24px"}
         ),
 
         cards_metricas,
+
+        html.P(
+            "Selecione as abas abaixo para ver como as características empurram a decisão para cada classe.",
+            style={"fontSize": "14px", "color": "#6B7280", "marginBottom": "24px"}
+        ),
 
         html.Div([
             html.P(
@@ -345,6 +341,7 @@ def render(app, df_books: pd.DataFrame) -> html.Div:
                 dcc.Graph(id="shap-beeswarm-graph", config={"displayModeBar": False})
             ]
         ),
+        _build_tabela_comparativa(),
 
         dcc.Store(id="shap-classe-selecionada", data=1),
     ])
@@ -389,8 +386,11 @@ def render(app, df_books: pd.DataFrame) -> html.Div:
     cfg_init    = CLASSE_CONFIG[1]
     fig_inicial = _build_shap_beeswarm(os.path.join(base_shap, cfg_init["arquivo"]), 1)
 
-    layout.children[-2].children[0].figure = fig_inicial
-    layout.children[-3].children = html.Span(
+# A posição [-3] agora aponta corretamente para a Div do dcc.Graph
+    layout.children[-3].children[0].figure = fig_inicial
+    
+    # A posição [-4] agora aponta corretamente para a Div do shap-classe-badge
+    layout.children[-4].children = html.Span(
         f"Exibindo: {cfg_init['label']}",
         style={
             "background":   cfg_init["badge_bg"],
