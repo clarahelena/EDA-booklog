@@ -2,48 +2,55 @@ from dash import html, dcc, Input, Output
 
 STORY_SECTIONS = [
     {
-        "label": "O Propósito do K-Means",
+        "label": "O Que Queríamos Entender",
         "text": (
-            "O objetivo da clusterização foi provar que a divisão tradicional por 'Gênero' "
-            "é insuficiente para sistemas de recomendação. O algoritmo agrupou o catálogo "
-            "com base na correlação entre características físicas (páginas) e "
-            "o comportamento real dos usuários (notas médias e volume de avaliações)."
+            "Como os leitores se comportam e se agrupam organicamente na plataforma. "
+            "A ideia era ir além das divisões tradicionais de gênero e usar Machine Learning "
+            "para descobrir 'tribos' com base em hábitos reais de leitura, volume de "
+            "avaliações e tamanho das obras."
         ),
     },
     {
-        "label": "Insight 1: O Paradoxo da Não-Ficção (Cluster 2)",
+        "label": "Universo Geek e Fantasia Pop (Cluster 0)",
         "text": (
-            "Este é o maior grupo do catálogo (35.6%), dominado por livros práticos e de "
-            "autodesenvolvimento. O insight primário: existe uma relação inversamente "
-            "proporcional entre nota e engajamento. Eles possuem as maiores notas médias, "
-            "porém o menor volume absoluto de resenhas. É um consumo de alta satisfação, mas baixo debate."
+            "Representando 18.5% do catálogo, o Cluster 0 concentra os leitores mais vorazes "
+            "e apaixonados. São extremamente vocais e lideram absolutamente a popularidade "
+            "de resenhas. Consomem em peso mundos fantásticos, magia, aventura e ficção científica."
         ),
     },
     {
-        "label": "Insight 2: O Peso do Engajamento na Fantasia (Cluster 0)",
+        "label": "Literatura Sênior e Ensaios (Cluster 1)",
         "text": (
-            "Representando apenas 18.5% do catálogo, as obras de Fantasia e Ficção Científica "
-            "concentram os maiores picos na escala logarítmica de popularidade. "
-            "Estatisticamente, é o cluster que sustenta o engajamento social da plataforma, "
-            "gerando volumes massivos de avaliações."
+            "O Cluster 1 (23.9%) revela um público exigente e focado em densidade. "
+            "Eles preferem biografias, história, ensaios e clássicos literários. São "
+            "leitores que valorizam a profundidade intelectual e não se intimidam com "
+            "calhamaços complexos."
         ),
     },
     {
-        "label": "Insight 3: O Efeito Calhamaço no Cluster 1",
+        "label": "Não-Ficção de Nicho e Lazer (Cluster 2)",
         "text": (
-            "O agrupamento de Literatura Sênior e História isolou obras mais longas e densas. "
-            "O cruzamento de dados quebra um viés comum: livros com alta contagem de páginas "
-            "não sofrem penalização nas notas. A média se mantém estável mesmo em obras acima "
-            "de 600 páginas, indicando um público altamente resiliente."
+            "A maior tribo da plataforma (35.6%) é o Cluster 2. Buscam livros práticos sobre "
+            "carreiras, estilo de vida e autodesenvolvimento. Um dado curioso: eles dão notas "
+            "muito altas, mas são uma comunidade silenciosa, com um perfil de exposição muito "
+            "menor nas resenhas escritas."
         ),
     },
     {
-        "label": "Conclusão para o Sistema Booklog",
+        "label": "Romances Mainstream e Dramas (Cluster 3)",
         "text": (
-            "Os dados comprovam que o engajamento varia pelo cluster, não apenas pela nota. "
-            "Um livro do Cluster 2 com nota 4.8 pode gerar zero discussão, enquanto um "
-            "livro do Cluster 0 com nota 4.1 pode viralizar. O sistema do "
-            "aplicativo deve ponderar essas diferenças para o feed do usuario."
+            "O Cluster 3 (22.0%) é a casa dos devoradores de sucessos comerciais. Preferem "
+            "romances e dramas com narrativas fluidas e de leitura rápida. Possuem uma altíssima "
+            "identificação comunitária, consumindo os títulos que estão em alta nas discussões."
+        ),
+    },
+    {
+        "label": "O Que Isso Significa na Prática",
+        "text": (
+            "O modelo provou que recomendar livros apenas por gênero é ineficiente. Leitores de "
+            "fantasia (vocalizados) engajam de forma totalmente diferente dos leitores de guias "
+            "práticos (silenciosos). Entender essas personalidades permite criar recomendações "
+            "hiper-direcionadas."
         ),
     },
 ]
