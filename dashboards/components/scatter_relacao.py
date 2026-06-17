@@ -69,7 +69,7 @@ def render(app, df):
                     children=[
                         # mensagem inicial antes do usuario clicar em algo
                         html.P("Clique em um ponto no gráfico para ver os detalhes do livro.", 
-                               style={'textAlign': 'center', 'color': '#64748b', 'marginTop': '60px', 'fontSize': '14px'})
+                               style={'textAlign': 'center', 'color': "#444e5e", 'marginTop': '60px', 'fontSize': '15px'})
                     ]
                 )
             ]
@@ -132,7 +132,7 @@ def render(app, df):
             filtered_df, x=x_col, y=y_col, color='rating',
             size='totalratings' if y_col != 'totalratings' else None, hover_name='title',
             log_y=True if y_col == 'totalratings' else False, template='plotly_dark',
-            color_continuous_scale=["#8a094a", "#ba0c63", "#c9442b", "#338a57", "#4ca6a6"], range_color=[0, 5], title=titulo_grafico,
+            color_continuous_scale='Turbo_r', range_color=[0, 5], title=titulo_grafico,
             labels={
                 x_col: nome_x,
                 y_col: nome_y,
