@@ -5,9 +5,9 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from dash import html, dcc, Input, Output, dash_table
-from components import story_clustering
+from components import storytelling
 
-# ── Paleta e nomes das tribos 
+# ── paleta e nomes das tribos(clusters)
 TRIBO_CONFIG = {
     0: {"nome": "Cluster 0 (Universo Geek & Fantasia)",   "cor": "#e41a1c"},
     1: {"nome": "Cluster 1 (Literatura Sênior & Ensaios)", "cor": "#377eb8"},
@@ -15,7 +15,7 @@ TRIBO_CONFIG = {
     3: {"nome": "Cluster 3 (Romances Mainstream & Dramas)", "cor": "#ff7f00"},
 }
 
-# ── Loader ───────────────────────────────────────────────────────────────────
+# carregamento do parquet com os clusters
 def _carregar_df_clusters(base_dir: str) -> pd.DataFrame | None:
     caminho_parquet = os.path.abspath(os.path.join(base_dir, '..', '..', 'Machine Learning', 'data', 'processed', 'livros_com_clusters.parquet'))
     if os.path.exists(caminho_parquet):
@@ -267,8 +267,9 @@ def _card_grafico(titulo: str, desc: str, component_id: str, figura: go.Figure) 
     )
 
 
-# ── Render principal
+# validaçao de arquivos físicos, monta painéis de controle e gerencia o isolamento de dados
 def render(app, df_books: pd.DataFrame) -> html.Div:
+    storytelling.register_callbacks(app, "clustering")
     base_dir      = os.path.dirname(os.path.abspath(__file__))
     df_clusters   = _carregar_df_clusters(base_dir)
     tem_svd       = df_clusters is not None and {"svd_x", "svd_y"}.issubset(df_clusters.columns)
@@ -276,7 +277,7 @@ def render(app, df_books: pd.DataFrame) -> html.Div:
     if not tem_svd:
         return html.Div(style={"padding": "20px"}, children=[html.P("Aviso: Dados de Clusterização SVD indisponíveis.", style={"color": "#E76F51", "fontWeight": "bold"})])
 
-    # ── painel de controles fitlros
+    # painel de controles dos fitlros
     top_controls = html.Div(
         style={
             'backgroundColor': '#FFFFFF', 'padding': '24px', 'borderRadius': '12px',
@@ -316,7 +317,7 @@ def render(app, df_books: pd.DataFrame) -> html.Div:
         ]
     )
 
-    # ── Seção 1: Scatter Espacial 
+    # Seção 1: Scatter Espacial 
     scatter_section = html.Div(
         style={"background": "#FFFFFF", "borderRadius": "16px", "padding": "24px", "boxShadow": "0 2px 12px rgba(0,0,0,.07)", "marginBottom": "24px"},
         children=[
@@ -326,7 +327,7 @@ def render(app, df_books: pd.DataFrame) -> html.Div:
         ],
     )
 
-    # ── Seção 2: Graficos do notebook 05
+    # Seção 2: Graficos do notebook 05
     graficos_cluster = html.Div(
         style={"display": "flex", "flexDirection": "column", "gap": "24px", "marginBottom": "24px"},
         children=[
@@ -393,7 +394,7 @@ def render(app, df_books: pd.DataFrame) -> html.Div:
 
     return html.Div(
         children=[
-            story_clustering.storytelling_layout(),
+            storytelling.create_layout("clustering"),
             html.H2("Machine Learning · Clusterização K-Means (k=4)", style={"fontWeight": "700", "fontSize": "22px", "color": "#252525", "marginBottom": "6px"}),
             html.P("O algoritmo segmentou o catálogo em 4 Tribos Literárias com base em comportamento de avaliações, gêneros e extensão de paginas.", style={"fontSize": "14px", "color": "#32353B", "marginBottom": "24px", "lineHeight": "1.6"}),
             top_controls,

@@ -4,9 +4,9 @@ import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
 from dash import html, dcc, Input, Output, callback
-from components import story_classificacao
+from components import storytelling
 
-# CONFIGURAÇÃO VISUAL — 3 CLASSES (Random Forest)
+# config padrao do visual
 CLASSE_CONFIG = {
     1: {
         "label":    "Bestseller",
@@ -37,7 +37,7 @@ CLASSE_CONFIG = {
     },
 }
 
-# Métricas reais do conjunto de TESTE
+# metricas do conjunto de TESTE
 METRICAS_TESTE = {
     "Acurácia Global":       "65.6%",
     "F1-Score (Macro)":      "0.49",
@@ -45,7 +45,7 @@ METRICAS_TESTE = {
     "Precisão (Nicho)":      "91.0%",
 }
 
-# HELPERS DE LAYOUT E GRÁFICOS
+# formato do cards para o layout
 def _stat_card(titulo: str, valor: str) -> html.Div:
     return html.Div(
         style={
@@ -65,6 +65,7 @@ def _stat_card(titulo: str, valor: str) -> html.Div:
         ],
     )
 
+# grafico comparativo de métricas (Precisão, Sensibilidade e F1-Score)
 def _build_grafico_escolha_modelo() -> html.Div:
     """Constrói o Gráfico de Barras agrupadas com foco na Classe 1 (conforme a imagem)."""
     dados = []
@@ -118,6 +119,7 @@ def _build_grafico_escolha_modelo() -> html.Div:
         ]
     )
 
+
 def _build_shap_beeswarm(caminho_parquet: str, classe_id: int) -> go.Figure:
     """Constrói o gráfico SHAP detalhado para observar a distribuição."""
     cfg = CLASSE_CONFIG[classe_id]
@@ -165,8 +167,9 @@ def _build_shap_beeswarm(caminho_parquet: str, classe_id: int) -> go.Figure:
     return fig
 
 
-# LAYOUT PRINCIPAL
+# montagem do layout html
 def render(app, df_books: pd.DataFrame) -> html.Div:
+    storytelling.register_callbacks(app, "classificacao")
     base_shap = os.path.join(os.path.dirname(__file__), '..', '..', 'Machine Learning', 'data', 'processed')
 
     cards_metricas = html.Div(
@@ -195,7 +198,7 @@ def render(app, df_books: pd.DataFrame) -> html.Div:
     )
 
     layout = html.Div([
-        story_classificacao.storytelling_layout(),
+        storytelling.create_layout("classificacao"),
         html.H2("Machine Learning · Random Forest", style={"fontWeight": "700", "fontSize": "28px", "color": "#252525", "marginTop": "32px"}),
         html.P("Desempenho final do modelo e explicabilidade (SHAP) do processo decisório. Como o algoritmo entende o impacto contextual de cada variável na popularidade.", style={"fontSize": "16px", "color": "#2E3238", "marginBottom": "24px"}),
         
@@ -222,7 +225,7 @@ def render(app, df_books: pd.DataFrame) -> html.Div:
         dcc.Store(id="shap-classe-selecionada", data=1),
     ])
 
-    # ── Callbacks 
+    # ── Callbacks que atualizam os graficos
 
     @callback(
         Output("shap-classe-selecionada", "data"),
@@ -250,7 +253,7 @@ def render(app, df_books: pd.DataFrame) -> html.Div:
         )
         return fig_shap, badge
 
-    # Injeta o Estado Inicial
+    # Injeta o estado Inicial
     cfg_init = CLASSE_CONFIG[1]
     
     layout.children[-3].children[0].figure = _build_shap_beeswarm(os.path.join(base_shap, cfg_init["arquivo"]), 1) 

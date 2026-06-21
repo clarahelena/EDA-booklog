@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 from dash import Dash, html, dcc, Input, Output
-from components import scatter_relacao, barras_generos, rosca_formatos, visao_geral, analise_hipoteses, analise_comunidade, ml_clustering, ml_classificacao, story_clustering, story_classificacao
+from components import scatter_relacao, barras_generos, rosca_formatos, visao_geral, analise_hipoteses, analise_comunidade, ml_clustering, ml_classificacao
 
 # função para converter a string do parquet em uma lista
 def extrair_generos(x):
@@ -98,9 +98,6 @@ def render_page(pathname):
             ]
         )
     ])
-
-story_clustering.register_callbacks(app)
-story_classificacao.register_callbacks(app)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 8050)), debug=False)
