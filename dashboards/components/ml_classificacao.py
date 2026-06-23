@@ -2,326 +2,264 @@ import os
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
-from dash import html, dcc, Input, Output, State, dash_table
+import plotly.express as px
+from dash import html, dcc, Input, Output, callback
+from components import storytelling
 
-# Configuração visual
+# config padrao do visual
 CLASSE_CONFIG = {
-    0: {
-        "label":  "Nicho",
-        "cor":    "#6366F1",
-        "desc":   "Obras com perfil especializado, público menor mas fiel.",
-        "badge_bg": "#EEF2FF",
-    },
     1: {
-        "label":  "Alta Popularidade",
-        "cor":    "#F59E0B",
-        "desc":   "Obras com apelo amplo e alto volume de leitores.",
+        "label":    "Bestseller",
+        "cor":      "#F59E0B",
+        "desc":     "Obras com alto volume de leitores (≥ 10.000 avaliações).",
         "badge_bg": "#FFFBEB",
+        "arquivo":  "shap_beeswarm_classe1_bestseller.parquet",
+        "seta_neg": "← Afasta de Bestseller",
+        "seta_pos": "Aproxima de Bestseller →",
+    },
+    2: {
+        "label":    "Média Popularidade",
+        "cor":      "#6366F1",
+        "desc":     "Obras com popularidade intermediária (≥ 1.000 avaliações).",
+        "badge_bg": "#EEF2FF",
+        "arquivo":  "shap_beeswarm_classe2_media.parquet",
+        "seta_neg": "← Afasta de Média Pop.",
+        "seta_pos": "Aproxima de Média Pop. →",
+    },
+    3: {
+        "label":    "Nicho",
+        "cor":      "#10B981",
+        "desc":     "Obras especializadas com público menor mas fiel (< 1.000 avaliações).",
+        "badge_bg": "#ECFDF5",
+        "arquivo":  "shap_beeswarm_classe3_nicho.parquet",
+        "seta_neg": "← Afasta de Nicho",
+        "seta_pos": "Aproxima de Nicho →",
     },
 }
 
-# ── Loader do parquet
-def _carregar_df_pop(base_dir: str) -> pd.DataFrame | None:
-    caminho_correto = os.path.abspath(os.path.join(base_dir, '..', '..', 'Machine Learning', 'data', 'processed', 'livros_com_popularidade_dashboard.parquet'))
+# metricas do conjunto de TESTE
+METRICAS_TESTE = {
+    "Acurácia Global":       "65.6%",
+    "F1-Score (Macro)":      "0.49",
+    "Recall (Bestseller)":   "54.0%",
+    "Precisão (Nicho)":      "91.0%",
+}
 
-    if os.path.exists(caminho_correto):
-        return pd.read_parquet(caminho_correto)
-        
-    return None
-
-
-# Helpers de layout 
-def _stat_card(titulo: str, valor: str, cor: str) -> html.Div:
+# formato do cards para o layout
+def _stat_card(titulo: str, valor: str) -> html.Div:
     return html.Div(
         style={
             "background":   "#FFFFFF",
-            "borderRadius": "14px",
-            "padding":      "20px 24px",
+            "borderRadius": "16px",
+            "padding":      "24px 20px",
             "flex":         "1",
             "minWidth":     "160px",
-            "boxShadow":    "0 2px 10px rgba(0,0,0,.06)",
-            "borderLeft":   f"5px solid {cor}",
+            "border":       "1px solid #F3F4F6",
+            "boxShadow":    "0 10px 25px rgba(0,0,0,0.08)", 
+            "textAlign":    "center",
+            "transition":   "transform 0.2s ease"
         },
         children=[
-            html.Div(valor, style={"fontWeight": "700", "fontSize": "22px", "color": "#252525"}),
-            html.Div(titulo, style={"fontSize": "12px", "color": "#9CA3AF", "marginTop": "2px"}),
+            html.Div(valor, style={"fontWeight": "700", "fontSize": "26px", "color": "#0C111B", "letterSpacing": "-0.5px"}),
+            html.Div(titulo, style={"fontSize": "12px", "color": "#40444D", "marginTop": "6px", "fontWeight": "500", "textTransform": "uppercase", "letterSpacing": "0.05em"}),
         ],
     )
 
-
-def _input_field(label: str, field_id: str, placeholder: str, valor_padrao) -> html.Div:
-    return html.Div(
-        style={"flex": "1", "minWidth": "140px"},
-        children=[
-            html.Label(label, style={"fontSize": "13px", "fontWeight": "600",
-                                     "color": "#374151", "marginBottom": "6px",
-                                     "display": "block"}),
-            dcc.Input(
-                id          = field_id,
-                type        = "number",
-                placeholder = placeholder,
-                value       = valor_padrao,
-                debounce    = False,
-                style={
-                    "width":        "100%",
-                    "padding":      "10px 14px",
-                    "borderRadius": "10px",
-                    "border":       "1.5px solid #E5E7EB",
-                    "fontSize":     "14px",
-                    "fontFamily":   "Poppins, sans-serif",
-                    "outline":      "none",
-                    "boxSizing":    "border-box",
-                },
-            ),
-        ],
+# grafico comparativo de métricas (Precisão, Sensibilidade e F1-Score)
+def _build_grafico_escolha_modelo() -> html.Div:
+    """Constrói o Gráfico de Barras agrupadas com foco na Classe 1 (conforme a imagem)."""
+    dados = []
+    
+    # Valores extraídos para a Classe 1
+    precisao = [0.180, 0.210, 0.140, 0.120]
+    recall   = [0.540, 0.500, 0.570, 0.560]
+    f1_score = [0.270, 0.300, 0.220, 0.200]
+    
+    modelos = ['Random Forest', 'XGBoost', 'Regressão Logística', 'KNN']
+    cores = ['#4285F4', '#A855F7', "#FB7324", '#FDE047'] 
+    
+    for i, modelo in enumerate(modelos):
+        dados.append({'Modelo': modelo, 'Métrica': 'Precisão', 'Desempenho': precisao[i]})
+        dados.append({'Modelo': modelo, 'Métrica': 'Recall', 'Desempenho': recall[i]})
+        dados.append({'Modelo': modelo, 'Métrica': 'F1-Score', 'Desempenho': f1_score[i]})
+        
+    df_plot = pd.DataFrame(dados)
+    
+    fig = px.bar(
+        df_plot,
+        x='Métrica',
+        y='Desempenho',
+        color='Modelo',
+        barmode='group',
+        text='Desempenho',
+        color_discrete_sequence=cores
     )
-
-
-#  Gráfico distribuição das classes 
-def _build_bar_distribuicao(df: pd.DataFrame) -> go.Figure:
-    contagens = df["classe_popularidade"].value_counts().sort_index()
-    cores  = [CLASSE_CONFIG[i]["cor"] for i in contagens.index]
-    labels = [CLASSE_CONFIG[i]['label'] for i in contagens.index]
-
-    fig = go.Figure(go.Bar(
-        x           = labels,
-        y           = contagens.values,
-        marker_color= cores,
-        text        = [f"{v:,}<br>({v/len(df)*100:.1f}%)" for v in contagens.values],
-        textposition= "outside",
-        textfont    = dict(size=13, family="Poppins"),
-    ))
-    fig.update_layout(
-        paper_bgcolor = "#FFFFFF",
-        plot_bgcolor  = "#F9FAFB",
-        font_family   = "Poppins, sans-serif",
-        margin        = dict(l=20, r=20, t=20, b=20),
-        yaxis         = dict(showgrid=True, gridcolor="#EBEBEB", title="Número de Livros"),
-        xaxis         = dict(showgrid=False),
-        height        = 300,
-        showlegend    = False,
-    )
-    return fig
-
-
-# Gráfico de dispersão: rating × reviews colorido por classe 
-def _build_scatter_pop(df: pd.DataFrame) -> go.Figure:
-    fig = go.Figure()
-    amostra = df.sample(min(4000, len(df)), random_state=42)
-
-    for cid, cfg in CLASSE_CONFIG.items():
-        sub = amostra[amostra["classe_popularidade"] == cid]
-        fig.add_trace(go.Scatter(
-            x    = sub["rating"],
-            y    = np.log1p(sub["reviews"]),
-            mode = "markers",
-            name = f"{cfg['label']}",
-            marker= dict(color=cfg["cor"], size=5, opacity=0.65,
-                         line=dict(width=0.3, color="white")),
-            hovertemplate=(
-                "<b>%{customdata[0]}</b><br>"
-                "Nota: %{x:.2f} | Resenhas: %{customdata[1]:,}<extra></extra>"
-            ),
-            customdata=sub[["title", "reviews"]].values,
-        ))
-
+    
+    fig.update_traces(texttemplate='%{text:.3f}', textposition='outside')
+    
     fig.update_layout(
         paper_bgcolor="#FFFFFF",
-        plot_bgcolor ="#F9FAFB",
-        font_family  ="Poppins, sans-serif",
-        margin       =dict(l=20, r=20, t=20, b=20),
-        xaxis        =dict(title="Nota Média (rating)", showgrid=True, gridcolor="#EBEBEB"),
-        yaxis        =dict(title="Resenhas (escala log)", showgrid=True, gridcolor="#EBEBEB"),
-        legend       =dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-        height       =320,
+        plot_bgcolor="#FFFFFF",
+        font_family="Poppins, sans-serif",
+        font_color="#1A1E25",
+        legend_title_text='',
+        legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="center", x=0.5, font=dict(size=20)),
+        xaxis=dict(title="", showgrid=False, zeroline=False, tickfont=dict(size=16)),
+        yaxis=dict(title="", showgrid=True, gridcolor="#F3F4F6", zeroline=False, range=[0, 0.65]),
+        margin=dict(l=20, r=20, t=60, b=40),
+        height=450
+    )
+
+    return html.Div(
+        style={"background": "#FFFFFF", "borderRadius": "16px", "padding": "24px", "boxShadow": "0 2px 12px rgba(0,0,0,.07)", "marginBottom": "32px"},
+        children=[
+            html.H3("Como o melhor modelo foi escolhido?", style={"marginTop": "0", "fontSize": "20px", "color": "#111827", "marginBottom": "6px", "fontWeight": "bold"}),
+            html.P("Comparativo de desempenho focado exclusivamente na capacidade de detectar Bestsellers (Classe 1).", style={"fontSize": "14px", "color": "#40444D", "marginBottom": "20px"}),
+            dcc.Graph(figure=fig, config={"displayModeBar": False})
+        ]
+    )
+
+
+def _build_shap_beeswarm(caminho_parquet: str, classe_id: int) -> go.Figure:
+    """Constrói o gráfico SHAP detalhado para observar a distribuição."""
+    cfg = CLASSE_CONFIG[classe_id]
+
+    try:
+        df_shap = pd.read_parquet(caminho_parquet)
+    except FileNotFoundError:
+        return go.Figure().update_layout(title=f"Arquivo {cfg['arquivo']} não encontrado.", paper_bgcolor="#FFFFFF")
+
+    if hasattr(df_shap['Feature'], 'cat') and df_shap['Feature'].cat.ordered:
+        ordered_features = list(df_shap['Feature'].cat.categories)
+    else:
+        ordered_features = (df_shap.assign(_abs=df_shap['SHAP_Value'].abs()).groupby('Feature')['_abs'].mean().sort_values(ascending=True).index.tolist())
+
+    feat_to_y = {f: i for i, f in enumerate(ordered_features)}
+    df_shap['Feature_Str'] = df_shap['Feature'].astype(str)
+
+    np.random.seed(42)
+    y_base = df_shap['Feature_Str'].map(feat_to_y).astype(float)
+    df_shap['Y_Jitter'] = y_base + np.random.uniform(-0.35, 0.35, size=len(df_shap))
+    df_shap['Feature_Value'] = df_shap['Feature_Value'].clip(0, 1)
+
+    fig = px.scatter(
+        df_shap, x='SHAP_Value', y='Y_Jitter', color='Feature_Value',
+        color_continuous_scale=['#377eb8', '#e41a1c'], range_color=[0, 1],
+        labels={'SHAP_Value': 'Impacto na Saída do Modelo (Valor SHAP)', 'Feature_Value': 'Valor da Variável'},
+    )
+    
+    fig.update_traces(marker=dict(size=4, opacity=0.65, line=dict(width=0)))
+
+    x_max = max(df_shap['SHAP_Value'].abs().max() * 1.1, 0.05)
+
+    fig.update_layout(
+        title=dict(text="Distribuição de Explicabilidade (SHAP Beeswarm)", font=dict(size=15, color="#0C121D")),
+        paper_bgcolor="#FFFFFF", plot_bgcolor="#F9FAFB", font_family="Poppins, sans-serif", font_color="#232933", margin=dict(l=20, r=30, t=50, b=60),
+        xaxis=dict(showgrid=True, gridcolor="#EBEBEB", zeroline=True, zerolinecolor="#1D1D1D", zerolinewidth=1.5, range=[-x_max, x_max], title_font=dict(size=17)),
+        yaxis=dict(showgrid=True, gridcolor="#EBEBEB", zeroline=False, tickmode='array', tickvals=list(feat_to_y.values()), ticktext=list(feat_to_y.keys()), title="", tickfont=dict(size=15)),
+        height=max(500, 60 * len(ordered_features)),
+        coloraxis_colorbar=dict(title=dict(text="Valor da<br>Variável", font=dict(size=11)), tickvals=[0, 0.5, 1], ticktext=["Baixo", "Médio", "Alto"], thickness=14, len=0.6, y=0.5),
+        annotations=[
+            dict(x=-x_max * 0.97, y=-0.10, xref="x", yref="paper", text=cfg["seta_neg"], showarrow=False, font=dict(size=15, color="#6e0560"), xanchor="left"),
+            dict(x=x_max * 0.97, y=-0.10, xref="x", yref="paper", text=cfg["seta_pos"], showarrow=False, font=dict(size=15, color="#0c8f13"), xanchor="right"),
+        ],
     )
     return fig
 
 
-# Render principal 
+# montagem do layout html
 def render(app, df_books: pd.DataFrame) -> html.Div:
-    base_dir  = os.path.dirname(os.path.abspath(__file__))
-    df        = _carregar_df_pop(base_dir)
-    tem_dados = df is not None
+    storytelling.register_callbacks(app, "classificacao")
+    base_shap = os.path.join(os.path.dirname(__file__), '..', '..', 'Machine Learning', 'data', 'processed')
 
-    # Métricas gerais 
-    if tem_dados:
-        n_total   = len(df)
-        n_pop     = int((df["classe_popularidade"] == 1).sum())
-        n_nicho   = int((df["classe_popularidade"] == 0).sum())
-        pct_pop   = f"{n_pop / n_total * 100:.1f}%"
-        nota_media= f"{df['rating'].mean():.2f}"
-    else:
-        n_total = n_pop = n_nicho = 0
-        pct_pop = nota_media = "—"
-
-    stats_row = html.Div(
-        style={"display": "flex", "gap": "14px", "flexWrap": "wrap", "marginBottom": "24px"},
+    cards_metricas = html.Div(
+        style={"display": "flex", "gap": "20px", "marginBottom": "32px", "flexWrap": "wrap"},
         children=[
-            _stat_card("Livros Analisados",   f"{n_total:,}",  "#252525"),
-            _stat_card("Alta Popularidade",   f"{n_pop:,}",    CLASSE_CONFIG[1]["cor"]),
-            _stat_card("Nicho",               f"{n_nicho:,}",  CLASSE_CONFIG[0]["cor"]),
-            _stat_card("% Populares",          pct_pop,        "#10B981"),
-            _stat_card("Nota Média Catálogo.",   nota_media,     "#6366F1"),
-        ],
-    )
-
-    # Gráficos 
-    if tem_dados:
-        graficos = html.Div(
-            style={"display": "flex", "gap": "20px", "flexWrap": "wrap", "marginBottom": "24px"},
-            children=[
-                html.Div(
-                    style={"flex": "1", "minWidth": "280px", "background": "#FFFFFF",
-                           "borderRadius": "16px", "padding": "20px",
-                           "boxShadow": "0 2px 10px rgba(0,0,0,.06)"},
-                    children=[
-                        html.H4("Distribuição das Classes",
-                                style={"fontWeight": "700", "fontSize": "14px",
-                                       "color": "#252525", "marginBottom": "4px"}),
-                        html.P("73.9% Nicho · 26.1% Alta Popularidade — dataset desbalanceado natural.",
-                               style={"fontSize": "12px", "color": "#9CA3AF", "marginBottom": "12px"}),
-                        dcc.Graph(figure=_build_bar_distribuicao(df),
-                                  config={"displayModeBar": False}),
-                    ],
-                ),
-                html.Div(
-                    style={"flex": "2", "minWidth": "320px", "background": "#FFFFFF",
-                           "borderRadius": "16px", "padding": "20px",
-                           "boxShadow": "0 2px 10px rgba(0,0,0,.06)"},
-                    children=[
-                        html.H4("Nota vs. Resenhas por Classe",
-                                style={"fontWeight": "700", "fontSize": "14px",
-                                       "color": "#252525", "marginBottom": "4px"}),
-                        html.P("Livros populares concentram-se em notas altas e mais resenhas. "
-                               "Passe o mouse para ver o título.",
-                               style={"fontSize": "12px", "color": "#9CA3AF", "marginBottom": "12px"}),
-                        dcc.Graph(id    ="scatter-popularidade",
-                                  figure=_build_scatter_pop(df),
-                                  config={"displayModeBar": False}),
-                    ],
-                ),
-            ],
-        )
-    else:
-        graficos = html.Div(
-            style={"background": "#FFF8F0", "borderRadius": "12px",
-                   "padding": "20px 24px", "marginBottom": "24px",
-                   "border": "1px dashed #F59E0B"},
-            children=[
-                html.P(" CSV não encontrado.",
-                       style={"fontWeight": "700", "color": "#F59E0B"})
-            ]
-        )
-
-    # Tabela explorável 
-    if tem_dados:
-        tabela_section = html.Div(
-            style={
-                "background":   "#FFFFFF",
-                "borderRadius": "16px",
-                "padding":      "24px",
-                "boxShadow":    "0 2px 12px rgba(0,0,0,.07)",
-            },
-            children=[
-                html.H3("Explorar Livros por Classe",
-                        style={"fontWeight": "700", "fontSize": "16px",
-                               "color": "#252525", "marginBottom": "4px"}),
-                html.P("Filtre por classe e pesquise títulos diretamente na tabela.",
-                       style={"fontSize": "13px", "color": "#6B7280", "marginBottom": "16px"}),
-
-                dcc.Dropdown(
-                    id       ="dropdown-classe-pop",
-                    options  =[
-                        {"label": "Alta Popularidade", "value": 1},
-                        {"label": "Nicho",             "value": 0},
-                        {"label": "Todos",             "value": -1},
-                    ],
-                    value    =-1,
-                    clearable=False,
-                    style    ={"fontFamily": "Poppins, sans-serif",
-                               "fontSize": "14px", "marginBottom": "16px"},
-                ),
-
-                html.Div(id="tabela-pop-container"),
-            ],
-        )
-    else:
-        tabela_section = html.Div()
-
-
-    # Callback 1: Tabela por classe
-    if tem_dados:
-        @app.callback(
-            Output("tabela-pop-container", "children"),
-            Input("dropdown-classe-pop", "value"),
-        )
-        def atualizar_tabela_pop(classe_val):
-            if classe_val == -1:
-                df_f = df
-            else:
-                df_f = df[df["classe_popularidade"] == classe_val]
-
-            cols_show = [c for c in ["title", "author", "pages", "rating", "reviews", "totalratings"]
-                         if c in df_f.columns]
-            df_f = df_f[cols_show].head(100)
-
-            cor = CLASSE_CONFIG[1]["cor"] if classe_val == 1 else (
-                  CLASSE_CONFIG[0]["cor"] if classe_val == 0 else "#252525")
-
-            col_labels = {
-                "title": "Título", "author": "Autor", "pages": "Páginas",
-                "rating": "Nota", "reviews": "Resenhas", "totalratings": "Total Aval.",
-            }
-
-            return dash_table.DataTable(
-                data        = df_f.to_dict("records"),
-                columns     = [{"name": col_labels.get(c, c), "id": c} for c in df_f.columns],
-                page_size   = 10,
-                sort_action = "native",
-                filter_action="native",
-                style_table ={"overflowX": "auto"},
-                style_header={
-                    "backgroundColor": cor,
-                    "color":           "#FFFFFF",
-                    "fontWeight":      "700",
-                    "fontSize":        "13px",
-                    "border":          "none",
-                    "padding":         "10px 14px",
-                },
-                style_cell={
-                    "fontFamily":      "Poppins, sans-serif",
-                    "fontSize":        "13px",
-                    "padding":         "9px 14px",
-                    "border":          "1px solid #F0F0F0",
-                    "backgroundColor": "#FFFFFF",
-                    "color":           "#374151",
-                    "maxWidth":        "240px",
-                    "overflow":        "hidden",
-                    "textOverflow":    "ellipsis",
-                },
-                style_data_conditional=[
-                    {"if": {"row_index": "odd"}, "backgroundColor": "#FAFAFA"},
-                ],
-            )
-
-    # Layout final 
-    return html.Div(
-        children=[
-            html.H2(
-                "Machine Learning · Classificação de Popularidade",
-                style={"fontWeight": "700", "fontSize": "22px",
-                       "color": "#252525", "marginBottom": "6px"},
-            ),
-            html.P(
-                f"Modelo KNN supervisionado (k=5) treinado para classificar se um livro tem perfil de "
-                f"Nicho (classe 0) ou Alta Popularidade (classe 1), com base em páginas, nota e resenhas. "
-                f"Acurácia global: 92.01% | Acervo avaliado: {n_total:,} livros | Split de Treino original: 70/30.",
-                style={"fontSize": "14px", "color": "#6B7280",
-                       "marginBottom": "24px", "lineHeight": "1.6"},
-            ),
-            stats_row,
-            graficos,
-            tabela_section,
+            _stat_card("Acurácia Global",     METRICAS_TESTE["Acurácia Global"]),
+            _stat_card("F1-Score (Macro)",    METRICAS_TESTE["F1-Score (Macro)"]),
+            _stat_card("Recall (Bestseller)", METRICAS_TESTE["Recall (Bestseller)"]),
+            _stat_card("Precisão (Nicho)",    METRICAS_TESTE["Precisão (Nicho)"]),
         ]
     )
+
+    seletor_classe = html.Div(
+        style={"display": "flex", "gap": "10px", "marginBottom": "20px", "flexWrap": "wrap"},
+        children=[
+            html.Button(
+                children=[
+                    html.Span(cfg["label"], style={"fontWeight": "600", "fontSize": "13px", "display": "block", "color": "#111827"}),
+                    html.Span(cfg["desc"],  style={"fontSize": "11px", "color": "#6B7280", "display": "block", "marginTop": "2px"}),
+                ],
+                id=f"btn-classe-{classe_id}", n_clicks=0,
+                style={"background": "#FFFFFF", "border": "1px solid #E5E7EB", "borderRadius": "12px", "padding": "10px 16px", "cursor": "pointer", "textAlign": "left", "flex": "1", "gap": "10","minWidth": "200px", "boxShadow": "0 2px 4px rgba(0,0,0,0.04)", "transition": "box-shadow 0.2s, transform 0.2s"},
+            )
+            for classe_id, cfg in CLASSE_CONFIG.items()
+        ]
+    )
+
+    layout = html.Div([
+        storytelling.create_layout("classificacao"),
+        html.H2("Machine Learning · Random Forest", style={"fontWeight": "700", "fontSize": "28px", "color": "#252525", "marginTop": "32px"}),
+        html.P("Desempenho final do modelo e explicabilidade (SHAP) do processo decisório. Como o algoritmo entende o impacto contextual de cada variável na popularidade.", style={"fontSize": "16px", "color": "#2E3238", "marginBottom": "24px"}),
+        
+        # KPIs
+        html.H3("Métricas de Teste", style={"marginTop": "0", "fontSize": "18px", "color": "#111827", "marginBottom": "16px"}),
+        cards_metricas,
+        
+        html.Div([
+            html.P("Selecione a classe que deseja analisar:", style={"fontSize": "14px", "fontWeight": "600", "color": "#374151", "marginBottom": "10px"}),
+            seletor_classe,
+        ]),
+        html.Div(id="shap-classe-badge", style={"marginBottom": "16px"}),
+
+        # Gráfico SHAP Beeswarm
+        html.H3("Comportamento e Distribuição (SHAP)", style={"marginTop": "0", "fontSize": "18px", "color": "#111827", "marginBottom": "16px"}),
+        html.Div(
+            style={"background": "#FFFFFF", "borderRadius": "16px", "padding": "24px", "boxShadow": "0 2px 12px rgba(0,0,0,.07)", "marginBottom": "40px"},
+            children=[dcc.Graph(id="shap-beeswarm-graph", config={"displayModeBar": False})]
+        ),
+
+        # Gráfico de Decisão do Modelo
+        _build_grafico_escolha_modelo(),
+
+        dcc.Store(id="shap-classe-selecionada", data=1),
+    ])
+
+    # ── Callbacks que atualizam os graficos
+
+    @callback(
+        Output("shap-classe-selecionada", "data"),
+        Input("btn-classe-1", "n_clicks"), Input("btn-classe-2", "n_clicks"), Input("btn-classe-3", "n_clicks"),
+        prevent_initial_call=True,
+    )
+    def _atualizar_classe(n1, n2, n3):
+        from dash import ctx
+        return {"btn-classe-1": 1, "btn-classe-2": 2, "btn-classe-3": 3}.get(ctx.triggered_id, 1)
+
+    @callback(
+        Output("shap-beeswarm-graph", "figure"),
+        Output("shap-classe-badge",   "children"),
+        Input("shap-classe-selecionada", "data"),
+    )
+    def _atualizar_graficos(classe_id):
+        cfg = CLASSE_CONFIG[classe_id]
+        caminho_shap = os.path.join(base_shap, cfg["arquivo"])
+        
+        fig_shap = _build_shap_beeswarm(caminho_shap, classe_id)
+        
+        badge = html.Span(
+            f"Analisando Classe: {cfg['label']}",
+            style={"background": cfg["badge_bg"], "color": cfg["cor"], "border": f"1px solid {cfg['cor']}", "borderRadius": "20px", "padding": "6px 16px", "fontSize": "13px", "fontWeight": "600"}
+        )
+        return fig_shap, badge
+
+    # Injeta o estado Inicial
+    cfg_init = CLASSE_CONFIG[1]
+    
+    layout.children[-3].children[0].figure = _build_shap_beeswarm(os.path.join(base_shap, cfg_init["arquivo"]), 1) 
+    layout.children[-5].children = html.Span(
+        f"Analisando Classe: {cfg_init['label']}",
+        style={"background": cfg_init["badge_bg"], "color": cfg_init["cor"], "border": f"1px solid {cfg_init['cor']}", "borderRadius": "20px", "padding": "6px 16px", "fontSize": "13px", "fontWeight": "600"}
+    )
+    
+    return layout

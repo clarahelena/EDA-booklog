@@ -3,9 +3,9 @@ import plotly.express as px
 import itertools
 from collections import Counter
 from dash import dcc, html, Input, Output
-from components import storytelling_comunidade
+from components import storytelling
 
-# --- ESTILOS GLOBAIS ---
+# Configurações visuais padronizadas e estilos dos cartões
 BG_CARD  = '#FFFFFF'
 ACCENT   = '#252525'
 TEXT     = '#252525'
@@ -21,9 +21,10 @@ CARD_STYLE = {
     'marginBottom': '24px'
 }
 
+# Função principal de renderização que inicializa os callbacks e prepara as opções de filtros
 def render(app, df: pd.DataFrame):
-    # Registrar o painel lateral da comunidade
-    storytelling_comunidade.register_callbacks(app)
+    # botao do storytelling
+    storytelling.register_callbacks(app, "comunidade")
     
     df_valido = df[(df['totalratings'] > 0)].copy()
     
@@ -31,7 +32,7 @@ def render(app, df: pd.DataFrame):
     todos_generos = list(itertools.chain.from_iterable(df_valido['generos_lista']))
     top_generos = [g for g, _ in Counter(todos_generos).most_common(50)]
     
-    # callback de atualizacao dos graficos
+    # callback que atualiza os graficos com base nos parâmetros inseridos pelo usuário
     @app.callback(
         Output('com-rev-ava', 'figure'),
         Output('com-autores', 'figure'),
@@ -74,7 +75,7 @@ def render(app, df: pd.DataFrame):
             font=dict(color=TEXT), xaxis=dict(gridcolor='#e0e0e0'), yaxis=dict(gridcolor='#e0e0e0'), height=450
         )
 
-        # Top Autores
+        # top Autores
         autor_stats = (fdf.groupby('author')
             .agg(qtd_livros=('title','count'), media_nota=('rating','mean'), total_ratings=('totalratings','sum'))
             .reset_index())
@@ -90,7 +91,7 @@ def render(app, df: pd.DataFrame):
             font=dict(color=TEXT), xaxis=dict(gridcolor='#e0e0e0'), yaxis=dict(gridcolor='#e0e0e0')
         )
 
-        # Top 10 Livros
+        # top 10 Livros
         top = fdf.nlargest(10, 'totalratings').copy()
         top['titulo_curto'] = top['title'].str[:45] + top['title'].apply(lambda x: '…' if len(str(x)) > 45 else '')
         fig_top = px.bar(top, x='totalratings', y='titulo_curto', orientation='h',
@@ -105,9 +106,9 @@ def render(app, df: pd.DataFrame):
 
         return rev_x_ava_stats, fig_autores, fig_top
 
-    # --- LAYOUT DA PÁGINA ---
+    # layout da pagina
     layout = html.Div(style={'color': TEXT}, children=[
-        storytelling_comunidade.storytelling_layout(),
+        storytelling.create_layout("comunidade"),
         
         html.H1("Comunidade e Engajamento", style={'textAlign': 'center', 'marginBottom': '8px', 'color': ACCENT, 'fontWeight': 'bold'}),
         html.P("Descubra o que os leitores realmente debatem, quem são os autores de maior impacto e os títulos favoritos.",

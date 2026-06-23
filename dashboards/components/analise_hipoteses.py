@@ -23,12 +23,14 @@ CARD_STYLE = {
     'marginBottom': '24px'
 }
 
-# --- REGRAS DO NOTEBOOK 03 ---
+# regras do notebook 03 que sao necessarios para projetar o grafico
 STOP_GENRES = {'Fiction', 'Literature', 'Books', 'Audiobook', 'Audiobooks', 'Nonfiction'}
 PARETO_CUTOFF = 0.80
 KDE_FORMAT_MIN_N = 50
 PALETTE_PLOTLY = px.colors.qualitative.Prism
 
+
+# remoção de duplicados, conversão de tipos, filtro de Pareto e cálculo do IQR de páginas
 def processar_dados_hipoteses(df_bruto: pd.DataFrame):
     # Limpeza e deduplicação iguais ao notebook 03
     df_hip = df_bruto.dropna(subset=['isbn']).copy()
@@ -39,7 +41,7 @@ def processar_dados_hipoteses(df_bruto: pd.DataFrame):
         
     df_hip = df_hip.dropna(subset=['rating', 'totalratings', 'genre', 'bookformat'])
     
-    # Tratamento da lista de gêneros (removendo Stop Genres)
+    # Tratamento da lista de gêneros
     df_hip['genre_list'] = (
         df_hip['genre']
         .apply(lambda x: [g.strip() for g in str(x).split(',') if g.strip()])
@@ -75,13 +77,14 @@ def processar_dados_hipoteses(df_bruto: pd.DataFrame):
 
 def render(app, df_bruto: pd.DataFrame):
     df_hip, top_genres, formatos_validos = processar_dados_hipoteses(df_bruto)
-    storytelling.register_callbacks(app)
+    storytelling.register_callbacks(app, "hipoteses")
     
     # selecao inicial para não carregar vazio
     formatos_iniciais = ['Paperback', 'Hardcover', 'ebook', 'Audio CD']
     formatos_iniciais = [f for f in formatos_iniciais if f in formatos_validos]
     if not formatos_iniciais: formatos_iniciais = formatos_validos[:4]
     
+    # atualizacao reativa dos gráficos de densidade probabilística (KDE) e de distribuição percentual empilhada
     @app.callback(
         Output('hip-kde-plot', 'figure'),
         Output('hip-stacked-bar', 'figure'),
@@ -124,7 +127,7 @@ def render(app, df_bruto: pd.DataFrame):
             fig_kde.update_layout(
                 title='<b>Distribuição de páginas por formato — Densidade Relativa</b>',
                 title_font=dict(weight=600),
-                xaxis=dict(type='log', tickvals=tickvals, ticktext=[str(v) for v in tickvals], title='Páginas (Log)', gridcolor='#e0e0e0'),
+                xaxis=dict(type='log', tickvals=tickvals, ticktext=[str(v) for v in tickvals], title='Páginas', gridcolor='#e0e0e0'),
                 yaxis=dict(title='Densidade Relativa', showticklabels=False, gridcolor='#e0e0e0'),
                 template=TEMPLATE, paper_bgcolor='#ffffff', plot_bgcolor='#ffffff',
                 font=dict(color=TEXT), hovermode='x unified', legend=dict(title='Formato')
@@ -165,9 +168,9 @@ def render(app, df_bruto: pd.DataFrame):
 
         return fig_kde, fig_bar
 
-    # --- LAYOUT ---
+    # layout da pagina
     layout = html.Div(style={'color': TEXT}, children=[
-        storytelling.storytelling_layout(),
+        storytelling.create_layout("hipoteses"),
         html.H1("Análise de Hipóteses", style={'textAlign': 'center', 'marginBottom': '8px', 'color': ACCENT, 'fontWeight': 'bold'}),
         html.P("Explorando a relação entre formatos físicos/digitais, tamanho das obras e preferências por gênero.",
                style={'textAlign': 'center', 'color': MUTED, 'marginBottom': '28px', 'fontSize': '15px'}),
