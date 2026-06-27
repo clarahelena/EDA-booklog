@@ -7,11 +7,12 @@ from collections import Counter
 from dash import dcc, html, Input, Output
 from components import storytelling
 
-# --- ESTILOS GLOBAIS ---
+
+# seção com estilizacao da pagina
 BG_CARD  = '#FFFFFF'
 ACCENT   = '#252525'
 TEXT     = '#252525'
-MUTED    = '#64748b'
+MUTED    = "#303842"
 TEMPLATE = 'plotly_white'
 
 CARD_STYLE = {
@@ -32,7 +33,7 @@ PALETTE_PLOTLY = px.colors.qualitative.Prism
 
 # remoção de duplicados, conversão de tipos, filtro de Pareto e cálculo do IQR de páginas
 def processar_dados_hipoteses(df_bruto: pd.DataFrame):
-    # Limpeza e deduplicação iguais ao notebook 03
+    # Limpeza igual ao notebook 03
     df_hip = df_bruto.dropna(subset=['isbn']).copy()
     df_hip = df_hip.drop_duplicates(subset=['isbn'])
     
@@ -48,7 +49,7 @@ def processar_dados_hipoteses(df_bruto: pd.DataFrame):
         .apply(lambda x: list(dict.fromkeys(g for g in x if g not in STOP_GENRES)))
     )
     
-    # Princípio de Pareto para pegar os gêneros mais relevantes
+    # Pareto para pegar os gêneros mais relevantes
     all_genres = [g for sublist in df_hip['genre_list'] for g in sublist]
     genre_counts = Counter(all_genres)
     pareto_df = pd.DataFrame.from_dict(genre_counts, orient='index', columns=['Frequencia']).sort_values('Frequencia', ascending=False)
@@ -56,7 +57,7 @@ def processar_dados_hipoteses(df_bruto: pd.DataFrame):
     
     top_genres = pareto_df[pareto_df['Pct_Cumulativa'] <= PARETO_CUTOFF].index.tolist()
     
-    # Cálculo do limite de páginas via IQR e log_pages
+    # calculo do limite de páginas via IQR e log_pages
     Q1_pages = df_hip['pages'].quantile(0.25)
     Q3_pages = df_hip['pages'].quantile(0.75)
     IQR_pages = Q3_pages - Q1_pages
@@ -75,27 +76,26 @@ def processar_dados_hipoteses(df_bruto: pd.DataFrame):
     
     return df_hip, top_genres, formatos_validos
 
+
+
 def render(app, df_bruto: pd.DataFrame):
     df_hip, top_genres, formatos_validos = processar_dados_hipoteses(df_bruto)
     storytelling.register_callbacks(app, "hipoteses")
     
     # selecao inicial para não carregar vazio
-    formatos_iniciais = ['Paperback', 'Hardcover', 'ebook', 'Audio CD']
+    formatos_iniciais = ['Paperback', 'Hardcover', 'ebook', 'Mass Market Paperback']
     formatos_iniciais = [f for f in formatos_iniciais if f in formatos_validos]
     if not formatos_iniciais: formatos_iniciais = formatos_validos[:4]
     
-    # atualizacao reativa dos gráficos de densidade probabilística (KDE) e de distribuição percentual empilhada
+    # callback 1 atualiza apenas o grafico de densidade e a tabela, quando o filtro respectivo é alterado
     @app.callback(
         Output('hip-kde-plot', 'figure'),
-        Output('hip-stacked-bar', 'figure'),
-        Input('hip-format-filter', 'value'),
-        Input('hip-genre-filter', 'value')
+        Output('hip-tabela-resumo', 'children'),
+        Input('hip-format-filter', 'value')
     )
-    def atualizar_graficos(formatos_selecionados, generos_selecionados):
+    def atualizar_grafico_densidade(formatos_selecionados):
         if not formatos_selecionados: formatos_selecionados = formatos_iniciais
-        if not generos_selecionados: generos_selecionados = top_genres[:15]
         
-        # grafico densidade por formato
         df_kde = df_hip[df_hip['bookformat'].isin(formatos_selecionados) & df_hip['log_pages'].notna()]
         
         fig_kde = go.Figure()
@@ -133,7 +133,48 @@ def render(app, df_bruto: pd.DataFrame):
                 font=dict(color=TEXT), hovermode='x unified', legend=dict(title='Formato')
             )
 
-        # Gráfico  Formatos por Gênero
+        # tabela de informações do grafico de densidade
+        linhas_tabela = []
+        if not df_kde.empty:
+            for i, fmt in enumerate(formatos_selecionados):
+                subset_valido = df_kde[df_kde['bookformat'] == fmt]['pages'].dropna()
+                
+                if not subset_valido.empty:
+                    mediana = int(subset_valido.median())
+                    q1 = int(subset_valido.quantile(0.25))
+                    q3 = int(subset_valido.quantile(0.75))
+                    
+                    linhas_tabela.append(html.Tr([
+                        html.Td(fmt, style={'padding': '12px', 'borderBottom': '1px solid #E2E8F0', 'fontWeight': '600', 'color': PALETTE_PLOTLY[i % len(PALETTE_PLOTLY)]}),
+                        html.Td(f"{len(subset_valido):,}".replace(',', '.'), style={'padding': '12px', 'borderBottom': '1px solid #E2E8F0', 'textAlign': 'center'}),
+                        html.Td(f"{mediana} pgs", style={'padding': '12px', 'borderBottom': '1px solid #E2E8F0', 'textAlign': 'center', 'fontWeight': 'bold'}),
+                        html.Td(f"Entre {q1} e {q3} pgs", style={'padding': '12px', 'borderBottom': '1px solid #E2E8F0', 'textAlign': 'center', 'color': MUTED})
+                    ]))
+
+        tabela_html = html.Table(
+            style={'width': '100%', 'borderCollapse': 'collapse', 'fontSize': '14px', 'color': TEXT, 'marginTop': '8px'},
+            children=[
+                html.Thead(html.Tr([
+                    html.Th("Formato", style={'padding': '12px', 'borderBottom': '2px solid #CBD5E1', 'textAlign': 'left'}),
+                    html.Th("Amostra (n)", style={'padding': '12px', 'borderBottom': '2px solid #CBD5E1', 'textAlign': 'center'}),
+                    html.Th("Pico Central (Mediana)", style={'padding': '12px', 'borderBottom': '2px solid #CBD5E1', 'textAlign': 'center'}),
+                    html.Th("Zona de Concentração (50% do volume)", style={'padding': '12px', 'borderBottom': '2px solid #CBD5E1', 'textAlign': 'center'})
+                ])),
+                html.Tbody(linhas_tabela)
+            ]
+        )
+
+        return fig_kde, tabela_html
+
+
+    # calback 2 atualiza apenas o grafico barras de generos, quando o filtro e alterado
+    @app.callback(
+        Output('hip-stacked-bar', 'figure'),
+        Input('hip-genre-filter', 'value')
+    )
+    def atualizar_grafico_barras(generos_selecionados):
+        if not generos_selecionados: generos_selecionados = top_genres[:15]
+        
         df_exploded = df_hip.explode('genre_list')
         df_exploded = df_exploded[df_exploded['genre_list'].isin(generos_selecionados)]
         
@@ -141,7 +182,6 @@ def render(app, df_bruto: pd.DataFrame):
             pivot = df_exploded.groupby(['genre_list', 'bookformat']).size().unstack(fill_value=0)
             pivot_pct = pivot.div(pivot.sum(axis=1), axis=0) * 100
             
-            # Ordenar com base no formato mais frequente globalmente
             dominant_fmt = pivot_pct.sum(axis=0).idxmax()
             pivot_pct = pivot_pct.sort_values(dominant_fmt, ascending=True)
             
@@ -166,7 +206,9 @@ def render(app, df_bruto: pd.DataFrame):
         else:
             fig_bar = px.bar(title="Sem dados suficientes")
 
-        return fig_kde, fig_bar
+        return fig_bar
+
+
 
     # layout da pagina
     layout = html.Div(style={'color': TEXT}, children=[
@@ -180,7 +222,7 @@ def render(app, df_bruto: pd.DataFrame):
             html.H3("Filtros Interativos", style={'color': ACCENT, 'marginBottom': '16px', 'fontSize': '16px', 'fontWeight': 'bold'}),
             html.Div(style={'display': 'flex', 'gap': '24px', 'flexWrap': 'wrap'}, children=[
                 html.Div(style={'flex': '1', 'minWidth': '300px'}, children=[
-                    html.Label("Comparar formatos (Gráfico KDE):", style={'display': 'block', 'marginBottom': '8px', 'fontWeight': 500}),
+                    html.Label("Comparar formatos (Formato x Paginas):", style={'display': 'block', 'marginBottom': '8px', 'fontWeight': 500}),
                     dcc.Dropdown(
                         id='hip-format-filter',
                         options=[{'label': f, 'value': f} for f in formatos_validos],
@@ -190,7 +232,7 @@ def render(app, df_bruto: pd.DataFrame):
                     )
                 ]),
                 html.Div(style={'flex': '1', 'minWidth': '300px'}, children=[
-                    html.Label("Analisar gêneros (Mix 100%):", style={'display': 'block', 'marginBottom': '8px', 'fontWeight': 500}),
+                    html.Label("Analisar gêneros (Formato x Gênero):", style={'display': 'block', 'marginBottom': '8px', 'fontWeight': 500}),
                     dcc.Dropdown(
                         id='hip-genre-filter',
                         options=[{'label': g, 'value': g} for g in top_genres],
@@ -202,17 +244,33 @@ def render(app, df_bruto: pd.DataFrame):
             ])
         ]),
         
-        # Gráficos
+        # graficos prontos aplicação na pagina
         html.Div(style=CARD_STYLE, children=[
             html.P("O formato dita o tamanho do livro?", style={'fontWeight': 'bold', 'marginBottom': '4px'}),
-            html.P("O eixo de páginas utiliza escala logarítmica para conseguir mostrar livros pequenos e gigantes no mesmo gráfico de forma nítida e sem distorções.", style={'fontSize': '13px', 'color': MUTED, 'marginBottom': '16px'}),
-            dcc.Graph(id='hip-kde-plot', style={'height': '500px'})
+            html.P("O eixo de páginas utiliza escala logarítmica apenas na visualização do grafico, para conseguir mostrar livros pequenos e gigantes no mesmo gráfico de forma nítida e sem distorções.", style={'fontSize': '13px', 'color': MUTED, 'marginBottom': '16px'}),
+            
+            # envolvendo o grafico no loading para dar informacao ao usuario de que esta carregando
+            dcc.Loading(
+                type="dot",
+                color=ACCENT,
+                children=[
+                    dcc.Graph(id='hip-kde-plot', style={'height': '500px'}),
+                    html.Div(id='hip-tabela-resumo', style={'marginTop': '24px'})
+                ]
+            )
         ]),
         
         html.Div(style=CARD_STYLE, children=[
             html.P("O gênero dita a forma de consumo?", style={'fontWeight': 'bold', 'marginBottom': '4px'}),
             html.P("Proporção 100% empilhada confirmando a predominância da Brochura (Paperback).", style={'fontSize': '13px', 'color': MUTED, 'marginBottom': '16px'}),
-            dcc.Graph(id='hip-stacked-bar', style={'height': '600px'})
+            
+            dcc.Loading(
+                type="dot",
+                color=ACCENT,
+                children=[
+                    dcc.Graph(id='hip-stacked-bar', style={'height': '600px'})
+                ]
+            )
         ])
     ])
     

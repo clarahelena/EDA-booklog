@@ -8,9 +8,9 @@ STORY_DATA = {
         "badge": "Dados: Kaggle · não generalizável",
         "badge_bg": "#EAF3DE", "badge_color": "#3B6D11",
         "sections": [
-            {"label": "O que queríamos entender", "text": "Se o formato de um livro — brochura, capa dura, ebook — tem alguma relação com a quantidade de paginas que ele vai ter. E se o gênero literário influencia essa escolha de formato."},
-            {"label": "Formato não define tamanho", "text": "Paperback, Hardcover e Ebook se concentram todos na mesma faixa — em torno de 300 páginas. A ideia de que ebooks tendem a ser mais curtos ou que capas duras existem só para livros grandes não se sustenta nos dados."},
-            {"label": "A hegemonia da brochura", "text": "O Paperback domina 18 dos 20 maiores gêneros do acervo. Não é liderança — é quase monopólio. Ignorar esse peso esmagador ao planejar a distribuição ou aquisição de novos títulos significa otimizar para um mercado que simplesmente não existe."},
+            {"label": "O que queríamos entender", "text": "Se existe diferença real na quantidade de páginas entre os principais formatos físicos — Paperback e Hardcover — e o digital (ebook). A hipótese era que o formato poderia influenciar o tamanho da obra."},
+            {"label": "Formato não define tamanho", "text": "Os três principais formatos convergem para a mesma faixa: Paperback com pico em 298 páginas, Hardcover em 310 e ebook em 283. A diferença entre o formato mais curto e o mais longo é de apenas 27 páginas — o formato não determina o tamanho do livro."},
+            {"label": "A hegemonia da brochura", "text": "O Paperback domina 18 dos 20 maiores gêneros do acervo e representa 61,5% do volume filtrado. Novas editoras podem seguir essas metricas para começar no mercado, como um guia seguro."},
             {"label": "O que ainda não sabemos", "text": "Se esse padrão é uma característica do mercado global ou um viés do dataset do Kaggle."},
         ]
     },
