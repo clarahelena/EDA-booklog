@@ -1,9 +1,10 @@
 import os
+import joblib
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
-from dash import html, dcc, Input, Output, callback
+from dash import html, dcc, Input, Output, callback, State
 from components import storytelling
 
 # config padrao do visual
@@ -71,9 +72,9 @@ def _build_grafico_escolha_modelo() -> html.Div:
     dados = []
     
     # Valores extraídos para a Classe 1
-    precisao = [0.180, 0.210, 0.140, 0.120]
-    recall   = [0.540, 0.500, 0.570, 0.560]
-    f1_score = [0.270, 0.300, 0.220, 0.200]
+    precisao = [0.180, 0.210, 0.140, 0.130]
+    recall   = [0.540, 0.500, 0.570, 0.570]
+    f1_score = [0.270, 0.300, 0.220, 0.210]
     
     modelos = ['Random Forest', 'XGBoost', 'Regressão Logística', 'KNN']
     cores = ['#4285F4', '#A855F7', "#FB7324", '#FDE047'] 
@@ -170,7 +171,23 @@ def _build_shap_beeswarm(caminho_parquet: str, classe_id: int) -> go.Figure:
 # montagem do layout html
 def render(app, df_books: pd.DataFrame) -> html.Div:
     storytelling.register_callbacks(app, "classificacao")
+    base_modelos = os.path.join(os.path.dirname(__file__), "..", "..", "Machine Learning", "models")
     base_shap = os.path.join(os.path.dirname(__file__), '..', '..', 'Machine Learning', 'data', 'processed')
+
+    modelo = joblib.load(os.path.join(base_modelos, "RF_popularidade.pkl"))
+    autor_frequencia = joblib.load(os.path.join(base_modelos, "autor_frequencia_RF.pkl"))
+
+    macro_generos = [
+    "Artes, Lazer e Estilo de Vida",
+    "Fantasia e Ficção Científica",
+    "Ficção Geral e Literatura",
+    "História e Biografia",
+    "Infantojuvenil e Quadrinhos",
+    "Mistério, Thriller e Terror",
+    "Não-Ficção e Autodesenvolvimento",
+    "Outros",
+    "Romance"
+    ]
 
     cards_metricas = html.Div(
         style={"display": "flex", "gap": "20px", "marginBottom": "32px", "flexWrap": "wrap"},
@@ -206,6 +223,93 @@ def render(app, df_books: pd.DataFrame) -> html.Div:
         html.H3("Métricas de Teste", style={"marginTop": "0", "fontSize": "18px", "color": "#111827", "marginBottom": "16px"}),
         cards_metricas,
         
+        html.H3("Simulador Potencial do Mercado", style={"marginTop": "0", "fontSize": "18px", "color": "#111827", "marginBottom": "16px"}),
+        
+        html.Div(
+            style={
+                "background": "#FFFFFF",
+                "borderRadius": "16px",
+                "padding": "24px",
+                "boxShadow": "0 2px 12px rgba(0,0,0,.07)",
+                "marginBottom": "40px",
+            },
+            children=[
+                html.Div(
+                    style={
+                        "display": "flex",
+                        "gap": "15px",
+                        "marginTop": "20px",
+                        "alignItems": "flex-end"
+                    },
+                    children=[
+                        # 1. Coluna do Autor
+                        html.Div(
+                            style={"flex": "2"},
+                            children=[
+                                html.Label("Autor:", style={'display': 'block', 'marginBottom': '8px', 'fontWeight': 'bold'}),
+                                dcc.Input(
+                                    id="autor-input",
+                                    placeholder="Ex: Agatha Christie",
+                                    type="text",
+                                    style={"width": "100%"}
+                                )
+                            ]
+                        ),
+                        # 2. Coluna do N° de Páginas
+                        html.Div(
+                            style={"width": "150px"},  # <--- Define um tamanho fixo ideal para números
+                            children=[
+                                html.Label("N° de Páginas:", style={'display': 'block', 'marginBottom': '8px', 'fontWeight': 'bold'}),
+                                dcc.Input(
+                                    id="pages-input",
+                                    placeholder="Ex: 156",
+                                    type="number",
+                                    style={"width": "100%"}
+                                )
+                            ]
+                        ),
+                        # 3. Coluna do Macrogênero
+                        html.Div(
+                            style={"flex": "2"},
+                            children=[
+                                html.Label("Macrogênero:", style={'display': 'block', 'marginBottom': '8px', 'fontWeight': 'bold'}),
+                                dcc.Dropdown(
+                                    id="genero-input",
+                                    options=[{"label": g, "value": g} for g in macro_generos],
+                                    placeholder="Ex: Romance",
+                                    style={"width": "100%"}
+                                )
+                            ]
+                        ),
+                        # 4. Botão Predizer
+                        html.Button(
+                            "Predizer",
+                            id="btn-predizer",
+                            n_clicks=0,
+                            style={
+                                "backgroundColor": "#E9ECEF",
+                                "color": "#0E0E0E",
+                                "cursor": "pointer",
+                                "border": "none",
+                                "borderRadius": "6px",
+                                "height": "36px",
+                                "transition": "background-color 0.2s"
+                            }
+                        )
+
+                    ]
+                ),
+
+                html.Br(),
+                html.Div(id="classe-prevista"),
+
+                dcc.Graph(
+                    id="grafico-probabilidades",
+                    config={"displayModeBar": False}
+                )
+            ]
+        ),        
+
         html.Div([
             html.P("Selecione a classe que deseja analisar:", style={"fontSize": "14px", "fontWeight": "600", "color": "#374151", "marginBottom": "10px"}),
             seletor_classe,
@@ -252,14 +356,124 @@ def render(app, df_books: pd.DataFrame) -> html.Div:
             style={"background": cfg["badge_bg"], "color": cfg["cor"], "border": f"1px solid {cfg['cor']}", "borderRadius": "20px", "padding": "6px 16px", "fontSize": "13px", "fontWeight": "600"}
         )
         return fig_shap, badge
+    
+    @callback(
+        Output("classe-prevista","children"),
+        Output("grafico-probabilidades","figure"),
+
+        Input("btn-predizer","n_clicks"),
+
+        State("autor-input","value"),
+        State("pages-input","value"),
+        State("genero-input","value"),
+
+        prevent_initial_call=True
+    )
+    def _prever(n, autor, paginas, genero):
+        if not autor or paginas is None or genero is None:
+            return (
+                html.Div(
+                    "Preencha todos os campos.",
+                    style={
+                        "color": "red",
+                        "fontWeight": "600"
+                    }
+                ),
+                go.Figure()
+            )
+
+        author_frequency = autor_frequencia.get(autor,0)
+
+        entrada = {}
+
+        for coluna in modelo.feature_names_in_:
+
+            entrada[coluna]=0
+
+        entrada["pages"]=paginas
+        entrada["author_frequency"]=author_frequency
+
+        entrada = dict.fromkeys(modelo.feature_names_in_, 0)
+
+        entrada["pages"] = paginas
+        entrada["author_frequency"] = author_frequency
+
+        if genero:
+            entrada[genero] = 1
+
+        X = pd.DataFrame([entrada])
+
+        classe = modelo.predict(X)[0]
+
+        probabilidades = modelo.predict_proba(X)[0]
+
+        nomes = {
+            1:"Bestseller",
+            2:"Média Popularidade",
+            3:"Nicho"
+        }
+
+        fig = go.Figure()
+
+        cores = [
+            "#C5A059",
+            "#2E5A88",
+            "#4A5568"
+        ]
+
+        fig.add_trace(
+            go.Bar(
+                x=[
+                    "Bestseller",
+                    "Média Popularidade",
+                    "Nicho"
+                ],
+                y=probabilidades,
+                text=[f"{p:.1%}" for p in probabilidades],
+                textposition="outside",
+                marker_color=cores
+            )
+        )
+
+        fig.update_layout(
+            title="Segmentação Comercial Estimada: ",
+            paper_bgcolor="white",
+            plot_bgcolor="white",
+            yaxis=dict(
+                title="Probabilidade",
+                range=[0,1]
+            ),
+            xaxis_title="Classe",
+            height=350
+        )
+
+        fig.update_layout(
+            yaxis_range=[0,1],
+            height=320,
+            paper_bgcolor="white",
+            plot_bgcolor="white",
+            margin=dict(l=20,r=20,t=30,b=20)
+        )
+
+        texto = html.Div(
+
+            [
+                html.H3(
+                    f"Classe prevista: {nomes[classe]}",
+                    style={"color":"#000000"}
+                )
+            ]
+
+        )
+
+        return texto, fig
 
     # Injeta o estado Inicial
     cfg_init = CLASSE_CONFIG[1]
     
     layout.children[-3].children[0].figure = _build_shap_beeswarm(os.path.join(base_shap, cfg_init["arquivo"]), 1) 
-    layout.children[-5].children = html.Span(
-        f"Analisando Classe: {cfg_init['label']}",
-        style={"background": cfg_init["badge_bg"], "color": cfg_init["cor"], "border": f"1px solid {cfg_init['cor']}", "borderRadius": "20px", "padding": "6px 16px", "fontSize": "13px", "fontWeight": "600"}
-    )
-    
+    #layout.children[-5].children = html.Span(
+    #    f"Analisando Classe: {cfg_init['label']}",
+    #    style={"background": cfg_init["badge_bg"], "color": cfg_init["cor"], "border": f"1px solid {cfg_init['cor']}", "borderRadius": "20px", "padding": "6px 16px", "fontSize": "13px", "fontWeight": "600"}
+    #)
     return layout
